@@ -1,0 +1,8 @@
+# crew.hairbysusy.com: the Hairbysusy On-Call Team sign-up
+# No build step: the site is plain files in /site.
+[build]
+  publish = "site"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
