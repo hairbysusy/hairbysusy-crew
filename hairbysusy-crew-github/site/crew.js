@@ -256,7 +256,7 @@
       }
       const first = v('name').split(/\s+/)[0];
       const locs = $('h-locations').value.split('; ').filter(Boolean);
-      $('doneText').textContent = 'Thank you, ' + first + '. Susy’s team reviews every application. Once you’re approved, you’ll get a text when there’s a job in ' + (locs.length === 1 ? locs[0] : 'one of your locations') + '.';
+      $('doneText').textContent = 'Thank you, ' + first + '. Susy’s team reviews every application. Once you’re approved, you’ll hear from us when there’s a job in ' + (locs.length === 1 ? locs[0] : 'one of your locations') + '.';
       document.body.classList.add('bloom');
       show(names.indexOf('done'), 1);
       document.documentElement.style.setProperty('--glow', '1');
