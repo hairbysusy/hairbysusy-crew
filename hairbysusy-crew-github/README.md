@@ -9,3 +9,5 @@ The Hairbysusy On-Call Team sign-up. Hosted on Netlify, which deploys this repos
 Applications are stored in Netlify Forms (form name `crew`). Email alerts are set in Netlify under Forms > Submission notifications.
 
 Text alerts need three Netlify environment variables: `SENT_API_KEY` (secret, from the Sent dashboard), `SENT_ALERT_TEMPLATE_ID` and `ALERT_TO`. See the comments at the top of the function.
+
+Updates pushed to the main branch are published to crew.hairbysusy.com automatically.
