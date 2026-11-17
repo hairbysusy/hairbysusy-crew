@@ -1,9 +1,11 @@
 // Runs by itself every time someone sends the crew form (Netlify's "submission-created" event).
 // Netlify only calls it for real applications, never for ones it flagged as spam.
-// It does two separate jobs, so one failing never stops the other:
-//   1. Adds the applicant to Contacts in Susy's Wix site, tagged "Crew" and "Crew: To review",
-//      plus a "Crew: <city>" tag for each location. Susy's Crew picks them up from there.
-//   2. Texts Susy and Victor through Sent so they know right away.
+// It does three separate jobs, so one failing never stops the others:
+//   1. Puts the full application in the team app's private inbox (a Wix CMS collection only
+//      site admins can open). The team app at team.hairbysusy.com moves it into Review.
+//   2. Adds the applicant to Contacts in Susy's Wix site, tagged "Crew" and "Crew: To review",
+//      plus a "Crew: <city>" tag for each location.
+//   3. Texts Susy and Victor through Sent so they know right away.
 //
 // Netlify environment variables (Project configuration > Environment variables):
 //   WIX_API_KEY             a Wix API key with Contacts permissions. Secret: paste it in Netlify yourself.
@@ -12,6 +14,9 @@
 //   SENT_ALERT_TEMPLATE_ID  the id of the approved "new application" template in Sent
 //   ALERT_TO                who gets the text, in +country format, separated by commas
 // Each job switches on only when its variables are set. The application is saved in Netlify either way.
+
+import { randomBytes } from 'node:crypto';
+import { addToInbox } from '../lib/team/wix.mjs';
 
 const clean = (value, max) =>
   String(value ?? '')
@@ -124,6 +129,35 @@ async function addToWix(d) {
   console.log('crew wix: added');
 }
 
+// The form's own fields, as typed (the team app escapes everything it shows).
+const FORM_FIELDS = ['name', 'phone', 'email', 'instagram', 'portfolio', 'locations', 'role', 'specialties',
+  'response_time', 'description', 'sms_consent', 'commitment'];
+
+async function addToTeamInbox(payload, d) {
+  if (!process.env.WIX_API_KEY) {
+    console.log('crew inbox: WIX_API_KEY is not set yet');
+    return;
+  }
+  const fields = {};
+  for (const k of FORM_FIELDS) {
+    const v = d[k];
+    if (v === undefined || v === null) continue;
+    fields[k] = String(Array.isArray(v) ? v.join(', ') : v).replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, ' ').slice(0, 4000);
+  }
+  const at = new Date(payload.created_at || Date.now());
+  fields.created_at = isNaN(at) ? new Date().toISOString() : at.toISOString();
+  const sid = String(payload.id || '');
+  const id = /^[A-Za-z0-9_-]{8,60}$/.test(sid) ? 'a' + sid : 'a' + randomBytes(12).toString('hex');
+  try {
+    await addToInbox(id, clean(d.name, 120) || 'Applicant', fields, fields.created_at);
+    console.log('crew inbox: added');
+  } catch (e) {
+    // Netlify can call this twice for one application; the second copy is refused by id.
+    if (e && e.code === 'WDE0074') console.log('crew inbox: already there');
+    else console.log('crew inbox: failed (' + ((e && (e.code || e.status)) || 'error') + ')');
+  }
+}
+
 async function textAlert(payload, d) {
   const { SENT_API_KEY, SENT_ALERT_TEMPLATE_ID, ALERT_TO } = process.env;
   if (!SENT_API_KEY || !SENT_ALERT_TEMPLATE_ID || !ALERT_TO) {
@@ -171,9 +205,9 @@ export async function handler(event) {
   if (payload.form_name !== 'crew') return { statusCode: 200 };
   const d = payload.data || {};
 
-  const results = await Promise.allSettled([addToWix(d), textAlert(payload, d)]);
+  const results = await Promise.allSettled([addToTeamInbox(payload, d), addToWix(d), textAlert(payload, d)]);
   results.forEach((r, i) => {
-    if (r.status === 'rejected') console.log((i === 0 ? 'crew wix' : 'crew alert') + ': failed');
+    if (r.status === 'rejected') console.log(['crew inbox', 'crew wix', 'crew alert'][i] + ': failed');
   });
   return { statusCode: 200 };
 }

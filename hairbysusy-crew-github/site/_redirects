@@ -1,0 +1,5 @@
+# The private team app opens only at team.hairbysusy.com.
+https://team.hairbysusy.com/                    /team/                                 302!
+https://team.hairbysusy.com/index.html          /team/                                 302!
+https://crew.hairbysusy.com/team/*              https://team.hairbysusy.com/team/:splat  301!
+https://hairbysusy-crew.netlify.app/team/*      https://team.hairbysusy.com/team/:splat  301!

@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Susy's Crew</title>
+<meta name="theme-color" content="#0C0C11">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Susy's Crew">
+<link rel="manifest" href="/team/manifest.webmanifest">
+<link rel="icon" type="image/png" href="/team/icon-192.png">
+<link rel="apple-touch-icon" href="/team/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wdth,wght@62..125,300..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/team/app.css">
+<script src="/team/connect.js" defer></script>
+<script src="/team/app.js" defer></script>
+</head>
+<body>
+<div class="boot" id="boot"><p class="eyebrow">Hairbysusy · On-Call Team</p><h1>Susy's Crew</h1></div>
+
+<main class="gate" id="gate" hidden>
+  <div class="gatebox">
+    <p class="eyebrow">Hairbysusy · On-Call Team</p>
+    <h1>Susy's Crew</h1>
+    <p class="gatesub">Private. Only Susy and Victor can sign in.</p>
+    <p class="gatemsg" id="gateMsg" role="alert" hidden></p>
+    <a class="btn solid gatebtn" id="gateSignIn" href="/api/team/login">Sign in with Google</a>
+  </div>
+</main>
+
+<div id="appRoot" hidden>
+<div class="wrap">
+  <header>
+    <div class="headrow">
+      <div>
+        <p class="eyebrow">Hairbysusy · On-Call Team</p>
+        <h1>Susy's Crew</h1>
+      </div>
+      <div class="headbtns">
+        <button class="btn" id="addBtn" type="button">Add people</button>
+        <button class="btn solid" id="newJobBtn" type="button">Job available</button>
+      </div>
+    </div>
+    <p class="summary" id="summary">Loading your crew…</p>
+    <p class="wixline" id="wixLine" role="status" hidden></p>
+  </header>
+
+  <div class="seg" role="tablist" aria-label="Views">
+    <button type="button" role="tab" id="tab-jobs" aria-selected="true" data-view="jobs">Jobs <span class="badge" id="yesCount" hidden>0</span></button>
+    <button type="button" role="tab" id="tab-review" aria-selected="false" data-view="review">Review <span class="badge" id="reviewCount" hidden>0</span></button>
+    <button type="button" role="tab" id="tab-all" aria-selected="false" data-view="all">Crew</button>
+  </div>
+
+  <div id="examples" class="banner" hidden>
+    <span>Everything marked <b>Example</b> shows how this works. Remove it before you start.</span>
+    <button class="btn small" type="button" id="clearExamples">Remove examples</button>
+  </div>
+  <p class="status" id="status" role="status"></p>
+
+  <!-- JOBS -->
+  <section class="view on" id="view-jobs" aria-labelledby="tab-jobs">
+    <div class="jobs" id="jobsList"></div>
+    <details class="past" id="pastWrap" hidden><summary id="pastSummary">Past jobs</summary><div class="jobs" id="pastList"></div></details>
+  </section>
+
+  <!-- REVIEW -->
+  <section class="view" id="view-review" aria-labelledby="tab-review">
+    <div class="list" id="reviewList"></div>
+  </section>
+
+  <!-- CREW -->
+  <section class="view" id="view-all" aria-labelledby="tab-all">
+    <input class="search" id="search" type="search" placeholder="Search name, location, specialty or notes" aria-label="Search">
+    <p class="privnote">Only Susy and Victor can open this page. Keep notes to facts about their work: if someone asks for their details, notes are part of what they get.</p>
+    <div class="u1 chips" id="statusChips">
+      <button type="button" class="chip" data-status="all" aria-pressed="true">All</button>
+      <button type="button" class="chip" data-status="approved" aria-pressed="false">Approved</button>
+      <button type="button" class="chip" data-status="worked" aria-pressed="false">Worked with</button>
+      <button type="button" class="chip" data-status="new" aria-pressed="false">To review</button>
+      <button type="button" class="chip" data-status="passed" aria-pressed="false">Declined</button>
+      <button type="button" class="chip" data-status="later" aria-pressed="false">Reach out later</button>
+      <button type="button" class="chip" data-status="removed" aria-pressed="false">Removed</button>
+    </div>
+    <div class="list" id="allList"></div>
+    <div class="u2"><button class="btn" id="shareBtn" type="button">Sign-up link</button></div>
+  <p class="who">Signed in as <span id="whoEmail"></span> · <button class="linkbtn" id="signOut" type="button">Sign out</button></p>
+  </section>
+</div>
+
+<!-- NEW JOB SHEET -->
+<div class="scrim" id="jobSheet" role="dialog" aria-modal="true" aria-labelledby="jobTitle">
+  <div class="sheet">
+    <div class="grabber"></div>
+    <h2 id="jobTitle">Job available</h2>
+    <p class="sub">Pick where and when. Everyone on your crew there gets the text, and whoever says yes shows up on the job.</p>
+    <p class="label">Where</p>
+    <div class="chips" id="nj-city"></div>
+    <div class="u3 f"><label class="u4" for="nj-cityOther">Another location</label><input id="nj-cityOther" maxlength="40" autocomplete="off" placeholder="Somewhere else? Type the city"></div>
+    <p class="u5 label">When</p>
+    <div class="chips" id="nj-day">
+      <button type="button" class="chip" data-day="0" aria-pressed="false">Today</button>
+      <button type="button" class="chip" data-day="1" aria-pressed="false">Tomorrow</button>
+    </div>
+    <div class="u3 row2">
+      <div class="f"><label for="nj-date">Date</label><input type="date" id="nj-date"></div>
+      <div class="f"><label for="nj-time">Call time</label><input type="time" id="nj-time"></div>
+    </div>
+    <div class="u6 f"><label for="nj-details">Details <span class="opt">optional</span></label><textarea id="nj-details" rows="2" maxlength="220" placeholder="Editorial shoot, 2 models, knotless braids"></textarea></div>
+    <p class="u5 label">The email they'll get</p>
+    <div class="msg" id="nj-msg"></div>
+    <button type="button" class="moreline" id="nj-moreBtn" aria-expanded="false" aria-controls="nj-more"><span id="nj-goes">Goes to everyone</span><span class="chg">Change</span></button>
+    <div id="nj-more" hidden>
+      <p class="u7 label">Who do you need?</p>
+      <div class="chips" id="nj-role">
+        <button type="button" class="chip" data-role="any" aria-pressed="true">Anyone</button>
+        <button type="button" class="chip" data-role="assist" aria-pressed="false">Assistants</button>
+        <button type="button" class="chip" data-role="full" aria-pressed="false">Full-job stylists</button>
+      </div>
+      <p class="u8 label">How many people?</p>
+      <div class="stepper"><button type="button" id="nj-minus" aria-label="Fewer">−</button><output id="nj-needed">1</output><button type="button" id="nj-plus" aria-label="More">+</button></div>
+      <p class="u8 label" id="nj-peopleLabel">Ask these people</p>
+      <div class="picklist" id="nj-people"></div>
+    </div>
+    <p class="meta" id="nj-noemail"></p>
+    <div class="result" id="nj-result" role="status"></div>
+    <div class="u9 sheetfoot">
+      <button class="btn" type="button" data-close>Close</button>
+      <a class="btn" id="nj-mailapp" href="#" hidden>Mail app</a>
+      <a class="btn solid" id="nj-save" href="#" target="_blank" rel="noopener">Send</a>
+    </div>
+  </div>
+</div>
+
+<!-- ADD SHEET -->
+<div class="scrim" id="addSheet" role="dialog" aria-modal="true" aria-labelledby="addTitle">
+  <div class="sheet">
+    <div class="grabber"></div>
+    <h2 id="addTitle">Add people</h2>
+    <p class="sub">Bring in new applications from bookhbs.com, or add someone you already work with.</p>
+    <div class="seg" role="tablist">
+      <button type="button" role="tab" aria-selected="true" data-pane="import">Import applications</button>
+      <button type="button" role="tab" aria-selected="false" data-pane="one">Add one person</button>
+    </div>
+    <div id="pane-import">
+      <ol class="steps">
+        <li>Open <b>Netlify</b> and go to the bookhbs.com site.</li>
+        <li>Go to <b>Forms</b>, open <b>crew</b>, then <b>Download CSV</b>.</li>
+        <li>Choose that file below. People already on your list are skipped.</li>
+      </ol>
+      <label class="drop" id="drop" for="csvFile">
+        <b>Choose CSV file</b>
+        <span>or drop it here</span>
+        <input type="file" id="csvFile" accept=".csv,text/csv">
+      </label>
+      <p class="or">or paste the CSV text</p>
+      <div class="f"><label class="u4" for="csvText">CSV text</label><textarea id="csvText" rows="4" placeholder="name,phone,instagram,locations,…"></textarea></div>
+      <div class="result" id="importResult" role="status"></div>
+      <div class="sheetfoot">
+        <button class="btn" type="button" data-close>Close</button>
+        <button class="btn solid" type="button" id="importBtn">Import</button>
+      </div>
+    </div>
+    <div id="pane-one" hidden>
+      <div class="f"><label for="o-name">Full name</label><input id="o-name" autocomplete="off"></div>
+      <div class="row2">
+        <div class="f"><label for="o-phone">Mobile number</label><input id="o-phone" type="tel" placeholder="(323) 555-0148"></div>
+        <div class="f"><label for="o-city">Locations</label><input id="o-city" list="locOpts" maxlength="120" autocomplete="off" placeholder="New York; London"><datalist id="locOpts"><option value="New York"><option value="Los Angeles"><option value="Atlanta"><option value="Miami"><option value="Houston"><option value="Chicago"><option value="Washington DC"><option value="Las Vegas"><option value="Toronto"><option value="London"><option value="Paris"><option value="Lagos"><option value="Abuja"><option value="Accra"><option value="Johannesburg"><option value="Dubai"></datalist></div>
+      </div>
+      <div class="row2">
+        <div class="f"><label for="o-role">Role</label>
+          <select id="o-role"><option>Both</option><option>Assist</option><option>Full jobs</option></select></div>
+        <div class="f"><label for="o-ig">Instagram</label><input id="o-ig" autocapitalize="none" placeholder="@handle"></div>
+      </div>
+      <div class="f"><label for="o-spec">Specialties</label><input id="o-spec" placeholder="Knotless braids, silk press"></div>
+      <div class="f"><label for="o-email">Email</label><input id="o-email" type="email" autocapitalize="none" placeholder="optional"></div>
+      <div class="result" id="oneResult" role="status"></div>
+      <div class="sheetfoot">
+        <button class="btn" type="button" data-close>Close</button>
+        <button class="btn solid" type="button" id="oneSave">Add to crew</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE SHEET -->
+<div class="scrim" id="shareSheet" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+  <div class="sheet">
+    <div class="grabber"></div>
+    <h2 id="shareTitle">Sign-up link</h2>
+    <p class="sub">Post this in your bio or send it to stylists you want on the team.</p>
+    <div class="f"><label for="signupUrl">Link</label><input id="signupUrl" value="https://bookhbs.com/crew" readonly></div>
+    <div class="sheetfoot">
+      <button class="btn" type="button" data-close>Close</button>
+      <button class="btn solid" type="button" id="copyLink">Copy link</button>
+    </div>
+  </div>
+</div>
+
+<!-- WELCOME SHEET -->
+<div class="scrim" id="welcomeSheet" role="dialog" aria-modal="true" aria-labelledby="welTitle">
+  <div class="sheet">
+    <div class="grabber"></div>
+    <h2 id="welTitle">Approved</h2>
+    <p class="sub" id="welSub">Let them know they're on the team.</p>
+    <div id="welEmailPart">
+      <div class="f"><label for="welTo">To</label><input id="welTo" readonly></div>
+      <div class="u6 f"><label for="welSubject">Subject</label><input id="welSubject" readonly></div>
+      <div class="u6 f"><label for="welBody">Message</label><textarea id="welBody" rows="9" readonly></textarea></div>
+    </div>
+    <div class="callbox" id="welCallPart">
+      <p class="label" id="welCallLabel">Or call them</p>
+      <p class="callscript" id="welScript"></p>
+      <div class="acts">
+        <a class="btn small" id="welCall" href="#">Call</a>
+        <a class="btn small" id="welText" href="#">Text</a>
+        <button class="btn small" type="button" id="welCalled" hidden>They know: mark as told</button>
+      </div>
+    </div>
+    <div class="result" id="welResult" role="status"></div>
+    <div class="u9 sheetfoot">
+      <button class="btn" type="button" data-close>Later</button>
+      <button class="btn" type="button" id="welCopy">Copy message</button>
+      <a class="btn" id="welMailApp" href="#">Mail app</a>
+      <a class="btn solid" id="welSend" href="#" target="_blank" rel="noopener">Open in Gmail</a>
+    </div>
+  </div>
+</div>
+
+<!-- LET PEOPLE KNOW SHEET -->
+<div class="scrim" id="noticeSheet" role="dialog" aria-modal="true" aria-labelledby="ntTitle">
+  <div class="sheet">
+    <div class="grabber"></div>
+    <h2 id="ntTitle">Let people know</h2>
+    <p class="sub" id="ntSub"></p>
+    <div class="ntlist" id="ntList"></div>
+    <div class="sheetfoot">
+      <button class="btn" type="button" data-close>Done</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+</div>
+</body>
+</html>
