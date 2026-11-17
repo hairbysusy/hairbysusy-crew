@@ -7,7 +7,7 @@
 //
 // Netlify environment variables (Project configuration > Environment variables):
 //   WIX_API_KEY             a Wix API key with Contacts permissions. Secret: paste it in Netlify yourself.
-//   WIX_SITE_ID             the Hair By Susy site id (not secret)
+//   WIX_SITE_ID             optional: the Hair By Susy site id is built in below (it isn't secret)
 //   SENT_API_KEY            the key from the Sent dashboard. Secret: paste it in Netlify yourself.
 //   SENT_ALERT_TEMPLATE_ID  the id of the approved "new application" template in Sent
 //   ALERT_TO                who gets the text, in +country format, separated by commas
@@ -36,13 +36,14 @@ const FIELD = {
   role: 'custom.crew-role-vbfqqsoungotmexvlllxoicrg',
 };
 const STATUS_TAGS = [TAG.review, TAG.approved, TAG.declined, TAG.later, TAG.removed];
+const SITE_ID = process.env.WIX_SITE_ID || '245486a5-efc7-4e35-b583-f9b546f02080'; // Hair By Susy
 
 async function wixCall(method, path, body) {
   const res = await fetch('https://www.wixapis.com' + path, {
     method,
     headers: {
       Authorization: process.env.WIX_API_KEY,
-      'wix-site-id': process.env.WIX_SITE_ID,
+      'wix-site-id': SITE_ID,
       'Content-Type': 'application/json',
     },
     body: body ? JSON.stringify(body) : undefined,
@@ -64,8 +65,7 @@ function phoneOf(raw) {
 }
 
 async function addToWix(d) {
-  const { WIX_API_KEY, WIX_SITE_ID } = process.env;
-  if (!WIX_API_KEY || !WIX_SITE_ID) {
+  if (!process.env.WIX_API_KEY) {
     console.log('crew wix: not set up yet');
     return;
   }

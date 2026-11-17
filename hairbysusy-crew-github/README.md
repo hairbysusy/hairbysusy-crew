@@ -10,6 +10,6 @@ Applications are stored in Netlify Forms (form name `crew`). Email alerts are se
 
 Text alerts need three Netlify environment variables: `SENT_API_KEY` (secret, from the Sent dashboard), `SENT_ALERT_TEMPLATE_ID` and `ALERT_TO`. See the comments at the top of the function.
 
-Each application is also added to Contacts in the Hair By Susy Wix site (tagged "Crew" and "Crew: To review", plus a "Crew: <city>" tag per location). That needs `WIX_API_KEY` (secret, a Wix API key with Contacts permissions) and `WIX_SITE_ID`. No applicant data is stored in this repository.
+Each application is also added to Contacts in the Hair By Susy Wix site (tagged "Crew" and "Crew: To review", plus a "Crew: <city>" tag per location). That needs one Netlify environment variable, `WIX_API_KEY` (secret, a Wix API key with Contacts permissions); the site ID is built in. No applicant data is stored in this repository.
 
 Updates pushed to the main branch are published to crew.hairbysusy.com automatically.
