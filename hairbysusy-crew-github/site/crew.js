@@ -165,6 +165,7 @@
     role(){ if (!$('h-role').value) return setErr('role', 'Choose one to continue.'), false; return true; },
     specialties(){ if (!$('h-specialties').value) return setErr('specialties', 'Choose at least one.'), false; return true; },
     response(){ if (!$('h-response_time').value) return setErr('response_time', 'Choose one to continue.'), false; return true; },
+    rate(){ return true; },
     review(){
       let ok = true;
       if (!$('consent').checked) { setErr('consent', 'Check the box so Susy can text you about jobs.'); ok = false; }
@@ -184,7 +185,8 @@
       ['Locations', $('h-locations').value, 'locations'],
       ['Role', $('h-role').value, 'role'],
       ['Specialties', $('h-specialties').value, 'specialties'],
-      ['Confirms', $('h-response_time').value, 'response']
+      ['Confirms', $('h-response_time').value, 'response'],
+      ['Day rate', [v('rate'), $('rateOpen').checked ? 'open to discuss' : ''].filter(Boolean).join(' · ') || '—', 'rate']
     ];
     const dl = $('review'); dl.innerHTML = '';
     rows.forEach(([label, value, step]) => {
