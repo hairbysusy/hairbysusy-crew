@@ -4,7 +4,8 @@
 //   1. Puts the full application in the team app's private inbox (a Wix CMS collection only
 //      site admins can open). The team app at team.hairbysusy.com moves it into Review.
 //   2. Adds the applicant to Contacts in Susy's Wix site, tagged "Crew" and "Crew: To review",
-//      plus a "Crew: <city>" tag for each location.
+//      plus a "Crew: <city>" tag for each location. The "Crew: To review" tag sets off the Wix
+//      automation "Crew applicants: send application received email".
 //   3. Texts Susy and Victor through Sent so they know right away.
 //
 // Netlify environment variables (Project configuration > Environment variables):
@@ -91,7 +92,7 @@ async function addToWix(d) {
   const info = {
     name: { first: parts[0], last: parts.slice(1).join(' ') },
     jobTitle: 'Crew: ' + (clean(d.role, 20) || 'applicant'),
-    labelKeys: { items: [TAG.crew, TAG.review] },
+    labelKeys: { items: [TAG.crew] },
     extendedFields: {
       items: {
         [FIELD.instagram]: clean(d.instagram, 60),
@@ -108,6 +109,9 @@ async function addToWix(d) {
   const created = await wixCall('POST', '/contacts/v4/contacts', { info });
   if (created.status === 200 && created.data.contact) {
     contactId = created.data.contact.id;
+    // "Crew: To review" goes on in its own step below. Adding that tag is what sends the
+    // applicant the "Application received" email (a Wix automation that runs when it's added).
+    add = [TAG.review];
   } else if (created.status === 409) {
     // Already a Wix contact (a past client, or someone who applied before).
     const dup = (((created.data.details || {}).applicationError || {}).data || {}).duplicateContactId;
