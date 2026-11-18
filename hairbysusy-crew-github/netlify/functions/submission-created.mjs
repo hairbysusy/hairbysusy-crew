@@ -69,6 +69,8 @@ function phoneOf(raw) {
   return p;
 }
 
+const fit200 = (v) => (v.length <= 200 ? v : v.slice(0, 200).replace(/,[^,]*$/, ''));
+
 async function addToWix(d) {
   if (!process.env.WIX_API_KEY) {
     console.log('crew wix: not set up yet');
@@ -93,7 +95,7 @@ async function addToWix(d) {
     extendedFields: {
       items: {
         [FIELD.instagram]: clean(d.instagram, 60),
-        [FIELD.specialties]: clean(d.specialties, 400),
+        [FIELD.specialties]: fit200(clean(d.specialties, 400)), // Wix allows 200 characters
         [FIELD.role]: clean(d.role, 20),
       },
     },

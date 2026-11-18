@@ -84,7 +84,9 @@ export async function contactsOp(req) {
       const ext = ((i.extendedFields || {}).items) || {};
       for (const [k, v] of Object.entries(ext)) {
         if (!FIELDS.has(k)) throw new Invalid('bad field');
-        info.extendedFields.items[k] = text(v, 400, 'bad field');
+        // Wix keeps at most 200 characters in these fields; longer lists are cut at a comma.
+        const t = text(v, 4000, 'bad field');
+        info.extendedFields.items[k] = t.length <= 200 ? t : t.slice(0, 200).replace(/,[^,]*$/, '');
       }
       const email = (((i.emails || {}).items || [])[0] || {}).email;
       if (email) info.emails = { items: [{ tag: 'MAIN', email: text(email, 254, 'bad email') }] };

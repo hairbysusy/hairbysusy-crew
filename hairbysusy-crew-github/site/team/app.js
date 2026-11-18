@@ -913,13 +913,15 @@
     }
     return null;
   }
+  // Wix keeps at most 200 characters in these contact fields; longer lists are cut at a comma.
+  const fit200 = v => { const s = String(v || ''); return s.length <= 200 ? s : s.slice(0, 200).replace(/,[^,]*$/, ''); };
   async function wixCreate(p){
     const parts = String(p.name || 'Crew member').trim().split(/\s+/);
     const info = {
       name: { first: parts[0], last: parts.slice(1).join(' ') },
       jobTitle: 'Crew: ' + (p.role || 'member'),
       labelKeys: { items: [WTAG.crew].concat(STATUS_TO_TAG[p.status] ? [STATUS_TO_TAG[p.status]] : []) },
-      extendedFields: { items: { [WFIELD.instagram]: String(p.instagram || ''), [WFIELD.specialties]: String(p.specialties || '').slice(0, 400), [WFIELD.role]: String(p.role || '') } }
+      extendedFields: { items: { [WFIELD.instagram]: fit200(p.instagram), [WFIELD.specialties]: fit200(p.specialties), [WFIELD.role]: fit200(p.role) } }
     };
     if (hasEmail(p)) info.emails = { items: [{ tag: 'MAIN', email: String(p.email).trim() }] };
     const num = e164(p.phone || '', p.city); if (num.length >= 8) info.phones = { items: [{ tag: 'MOBILE', phone: '+' + num }] };
@@ -1004,6 +1006,7 @@
     const r = await wixApi('POST', 'https://www.wixapis.com/contacts/v4/contacts/query', body, WDOC.find);
     for (const c of (r.contacts || [])) await wixTakeIn(c);
   }
+  // Someone Wix won't take is skipped until Try again, so they don't hold up everyone else.
   const wixSkip = new Set();
   const wixPending = () => people.filter(p => !p.sample && !p.wix_skip && !wixSkip.has(p.id) && (!p.wix_id || p.wix_sig !== wixSig(p, historyOf(p.id))));
   async function wixPushAll(){
@@ -1015,7 +1018,7 @@
       let failed = null;
       for (const p of todo) {
         try { await wixPush(p); }
-        catch(e){ if (e && ['signed_out', 'offline', 'server_not_connected'].includes(e.code)) throw e; failed = failed || e; wixSkip.add(p.id); }
+        catch(e){ if (e && ['signed_out', 'offline', 'approval_required', 'not_in_manifest', 'consent_required', 'server_not_connected', 'selection_required', 'server_not_found', 'needs_reauth', 'not_granted', 'capability_disabled', 'capability_removed'].includes(e.code)) throw e; failed = failed || e; wixSkip.add(p.id); }
       }
       if (failed) throw failed;
       wixShow('ok');
