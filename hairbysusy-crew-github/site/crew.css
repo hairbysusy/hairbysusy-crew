@@ -148,6 +148,7 @@ textarea.input{font-size:19px;line-height:1.45;resize:none;min-height:96px}
 .chips.custom:empty{display:none}
 .chip .x{font-size:18px;line-height:1;opacity:.6;margin-left:2px}
 .cards{display:grid;gap:12px}
+.license-where{margin-top:22px}
 .card{text-align:left;width:100%;padding:18px 20px;border-radius:20px;border:1.5px solid transparent;background:var(--surface);cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:4px 16px;align-items:center;transition:border-color .2s,background .2s,transform .15s}
 .card:hover{background:#1D1C27}
 .card:active{transform:scale(.99)}

@@ -163,6 +163,13 @@
     },
     locations(){ if (v('otherLoc')) addLoc(); if (!$('h-locations').value) return setErr('locations', 'Choose at least one location, or add your own.'), false; return true; },
     role(){ if (!$('h-role').value) return setErr('role', 'Choose one to continue.'), false; return true; },
+    license(){
+      const st = $('h-license_status').value;
+      if (!st) return setErr('license_status', 'Choose one to continue.'), false;
+      const where = v('licenseWhere');
+      $('h-licensed').value = st === 'Licensed' && where ? 'Licensed (' + where + ')' : st;
+      return true;
+    },
     specialties(){ if (!$('h-specialties').value) return setErr('specialties', 'Choose at least one.'), false; return true; },
     response(){ if (!$('h-response_time').value) return setErr('response_time', 'Choose one to continue.'), false; return true; },
     rate(){ return true; },
@@ -184,6 +191,7 @@
       ['Portfolio', v('portfolio').replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '') || '—', 'work'],
       ['Locations', $('h-locations').value, 'locations'],
       ['Role', $('h-role').value, 'role'],
+      ['License', $('h-licensed').value, 'license'],
       ['Specialties', $('h-specialties').value, 'specialties'],
       ['Confirms', $('h-response_time').value, 'response'],
       ['Day rate', [v('rate'), $('rateOpen').checked ? 'open to discuss' : ''].filter(Boolean).join(' · ') || '—', 'rate']

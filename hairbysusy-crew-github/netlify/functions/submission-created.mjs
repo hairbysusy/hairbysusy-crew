@@ -132,7 +132,7 @@ async function addToWix(d) {
 }
 
 // The form's own fields, as typed (the team app escapes everything it shows).
-const FORM_FIELDS = ['name', 'phone', 'email', 'instagram', 'portfolio', 'locations', 'role', 'specialties',
+const FORM_FIELDS = ['name', 'phone', 'email', 'instagram', 'portfolio', 'locations', 'role', 'licensed', 'specialties',
   'response_time', 'rate', 'rate_open', 'description', 'sms_consent', 'commitment'];
 
 async function addToTeamInbox(payload, d) {

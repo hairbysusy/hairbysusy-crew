@@ -22,6 +22,8 @@
   <!-- values set by chips and switches -->
   <input type="hidden" name="locations" id="h-locations">
   <input type="hidden" name="role" id="h-role">
+  <input type="hidden" id="h-license_status">
+  <input type="hidden" name="licensed" id="h-licensed">
   <input type="hidden" name="specialties" id="h-specialties">
   <input type="hidden" name="response_time" id="h-response_time">
 
@@ -149,6 +151,22 @@
         <button type="button" class="card" data-value="Both"><b>Both</b><span>Assist or take full jobs, depending on the booking.</span><i class="radio"></i></button>
       </div>
       <div class="err" id="err-role"></div>
+    </section>
+
+    <!-- 5b license -->
+    <section class="step" data-step="license" aria-labelledby="t5b">
+      <h1 id="t5b">Are you licensed?</h1>
+      <p class="hint">A cosmetology, barber or nail license.</p>
+      <div class="cards" data-field="license_status" role="group" aria-labelledby="t5b">
+        <button type="button" class="card" data-value="Licensed"><b>Yes, I'm licensed</b><span>I hold a current license.</span><i class="radio"></i></button>
+        <button type="button" class="card" data-value="In training"><b>In training</b><span>I'm in beauty school or an apprenticeship.</span><i class="radio"></i></button>
+        <button type="button" class="card" data-value="Not licensed"><b>Not licensed</b><span>I don't hold a license.</span><i class="radio"></i></button>
+      </div>
+      <div class="err" id="err-license_status"></div>
+      <div class="field license-where">
+        <label for="licenseWhere">Where is your license from? <span class="opt">optional</span></label>
+        <input class="input" id="licenseWhere" maxlength="60" autocomplete="off" placeholder="New York, California, UK" data-nofocus>
+      </div>
     </section>
 
     <!-- 6 specialties -->
