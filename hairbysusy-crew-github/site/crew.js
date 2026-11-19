@@ -24,7 +24,9 @@
       btn.setAttribute('aria-pressed', 'false');
       btn.addEventListener('click', () => {
         if (multi) {
-          btn.setAttribute('aria-pressed', btn.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
+          const on = btn.getAttribute('aria-pressed') === 'true';
+          if (!on && group.dataset.field === 'locations' && pickedLocs() >= MAX_LOCS) return setErr('locations', LOCS_FULL);
+          btn.setAttribute('aria-pressed', on ? 'false' : 'true');
         } else {
           group.querySelectorAll('[data-value]').forEach(b => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
         }
@@ -43,6 +45,9 @@
   const sep = field => field === 'locations' ? '; ' : ', ';
   let customLocs = [];
   const presetLocs = [...document.querySelectorAll('[data-field="locations"] [data-value]')];
+  // Where they take clients now: at most 2 cities, counting the ones they add themselves.
+  const MAX_LOCS = 2, LOCS_FULL = 'Choose up to 2 cities.';
+  function pickedLocs(){ return presetLocs.filter(b => b.getAttribute('aria-pressed') === 'true').length + customLocs.length; }
   function cleanLoc(t){
     t = String(t || '').replace(/;+/g, ' ').replace(/[^\p{L}\p{M} .,'\-]/gu, '').replace(/\s*,[\s,]*/g, ', ').replace(/\s+/g, ' ').replace(/^[\s,]+|[\s,]+$/g, '').slice(0, 40);
     if (t && t === t.toLowerCase()) t = t.replace(/(^|[\s\-])\p{L}/gu, m => m.toUpperCase());
@@ -57,20 +62,22 @@
       const t = document.createElement('span'); t.className = 'tick'; t.textContent = '\u2713';
       const x = document.createElement('span'); x.className = 'x'; x.setAttribute('aria-hidden', 'true'); x.textContent = '\u00d7';
       b.append(t, document.createTextNode(name), x);
-      b.addEventListener('click', () => { customLocs = customLocs.filter(n => n !== name); drawCustom(); refresh('locations'); });
+      b.addEventListener('click', () => { customLocs = customLocs.filter(n => n !== name); drawCustom(); refresh('locations'); clearErr('locations'); });
       box.appendChild(b);
     });
   }
+  // Returns false when the city couldn't be added (the reason is shown under the cities).
   function addLoc(){
-    const name = cleanLoc($('otherLoc').value); $('otherLoc').value = '';
-    if (!name) return;
+    const name = cleanLoc($('otherLoc').value);
+    if (!name) { $('otherLoc').value = ''; return true; }
     const preset = presetLocs.find(b => b.dataset.value.toLowerCase() === name.toLowerCase());
+    const already = preset ? preset.getAttribute('aria-pressed') === 'true' : customLocs.some(n => n.toLowerCase() === name.toLowerCase());
+    if (!already && pickedLocs() >= MAX_LOCS) { setErr('locations', LOCS_FULL); return false; }
+    $('otherLoc').value = '';
     if (preset) preset.setAttribute('aria-pressed', 'true');
-    else if (!customLocs.some(n => n.toLowerCase() === name.toLowerCase())) {
-      if (customLocs.length >= 8) return setErr('locations', 'That\u2019s the most you can add. Remove one to add another.');
-      customLocs.push(name); drawCustom();
-    }
+    else if (!already) { customLocs.push(name); drawCustom(); }
     refresh('locations'); clearErr('locations');
+    return true;
   }
   $('addLoc').addEventListener('click', addLoc);
   $('otherLoc').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); addLoc(); } });
@@ -84,7 +91,7 @@
 
   function syncUI(){
     const lv = $('h-locations').value.split('; ').filter(Boolean);
-    customLocs = lv.filter(n => !presetLocs.some(b => b.dataset.value === n)).map(cleanLoc).filter(Boolean).slice(0, 8);
+    customLocs = lv.filter(n => !presetLocs.some(b => b.dataset.value === n)).map(cleanLoc).filter(Boolean).slice(0, MAX_LOCS);
     drawCustom();
     document.querySelectorAll('[data-field]').forEach(group => {
       const vals = $('h-' + group.dataset.field).value.split(sep(group.dataset.field)).filter(Boolean);
@@ -161,7 +168,12 @@
       }
       return ok;
     },
-    locations(){ if (v('otherLoc')) addLoc(); if (!$('h-locations').value) return setErr('locations', 'Choose at least one location, or add your own.'), false; return true; },
+    locations(){
+      if (v('otherLoc') && !addLoc()) return false;
+      if (!$('h-locations').value) return setErr('locations', 'Choose the city where you take clients, or add your own.'), false;
+      if (pickedLocs() > MAX_LOCS) return setErr('locations', LOCS_FULL), false;
+      return true;
+    },
     role(){ if (!$('h-role').value) return setErr('role', 'Choose one to continue.'), false; return true; },
     license(){
       const st = $('h-license_status').value;
@@ -189,7 +201,7 @@
       ['Email', v('email'), 'contact'],
       ['Instagram', v('instagram'), 'work'],
       ['Portfolio', v('portfolio').replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '') || '—', 'work'],
-      ['Locations', $('h-locations').value, 'locations'],
+      ['Takes clients in', $('h-locations').value, 'locations'],
       ['Role', $('h-role').value, 'role'],
       ['License', $('h-licensed').value, 'license'],
       ['Specialties', $('h-specialties').value, 'specialties'],
@@ -266,7 +278,7 @@
       }
       const first = v('name').split(/\s+/)[0];
       const locs = $('h-locations').value.split('; ').filter(Boolean);
-      $('doneText').textContent = 'Thank you, ' + first + '. Susy’s team reviews every application. Once you’re approved, you’ll hear from us when there’s a job in ' + (locs.length === 1 ? locs[0] : 'one of your locations') + '.';
+      $('doneText').textContent = 'Thank you, ' + first + '. Susy’s team reviews every application. Once you’re approved, you’ll hear from us when there’s a job in ' + (locs.length === 1 ? locs[0] : locs.length === 2 ? locs[0] + ' or ' + locs[1] : 'one of your cities') + '.';
       document.body.classList.add('bloom');
       show(names.indexOf('done'), 1);
       document.documentElement.style.setProperty('--glow', '1');
