@@ -134,6 +134,18 @@ export async function addToInbox(id, title, fields, receivedAt) {
   });
 }
 
+// Replaces the form fields of an application still waiting in the inbox (the confirm-your-city
+// page uses this when someone confirms their city before the team app has filed them).
+export async function replaceInboxFields(item, fields) {
+  const d = item.data || {};
+  await wixRequest('PUT', '/wix-data/v2/items/' + encodeURIComponent(item.id), {
+    body: {
+      dataCollectionId: COLLECTIONS.inbox,
+      dataItem: { id: item.id, data: { title: d.title, json: JSON.stringify(fields), receivedAt: d.receivedAt } },
+    },
+  });
+}
+
 /* ---------------- sign-in sessions ---------------- */
 
 export async function insertSession(idHash, email, expires, device) {

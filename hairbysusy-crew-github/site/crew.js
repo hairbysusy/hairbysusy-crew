@@ -51,7 +51,7 @@
   function cleanLoc(t){
     t = String(t || '').replace(/;+/g, ' ').replace(/[^\p{L}\p{M} .,'\-]/gu, '').replace(/\s*,[\s,]*/g, ', ').replace(/\s+/g, ' ').replace(/^[\s,]+|[\s,]+$/g, '').slice(0, 40);
     if (t && t === t.toLowerCase()) t = t.replace(/(^|[\s\-])\p{L}/gu, m => m.toUpperCase());
-    return t;
+    return t.replace(/,\s*(\p{L}{2})$/u, (m, c) => ', ' + c.toUpperCase()); // "Charlotte, nc" -> "Charlotte, NC"
   }
   function drawCustom(){
     const box = $('customLocs'); box.innerHTML = '';

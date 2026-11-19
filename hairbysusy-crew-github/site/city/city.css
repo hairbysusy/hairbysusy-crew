@@ -1,0 +1,11 @@
+/* The confirm-your-city page. Everything else comes from /crew.css. */
+.city .hint{color:var(--muted);font-size:15px;margin:0 0 18px}
+.city .locs .region{margin:24px 0 10px}
+.city .locs .region:first-child{margin-top:4px}
+.city .save{margin-top:26px}
+.city .fine{margin-top:18px}
+.city #done:not([hidden]) .mark circle{animation:draw .9s var(--ease) .15s forwards}
+.city #done:not([hidden]) .mark path{animation:draw .5s var(--ease) .8s forwards}
+@media (prefers-reduced-motion:reduce){
+  .city #done .mark circle,.city #done .mark path{animation:none;stroke-dashoffset:0}
+}

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Where do you take clients? · HairBySusy On-Call Team</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wdth,wght@62..125,300..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/crew.css">
+<link rel="stylesheet" href="/city/city.css">
+</head>
+<body class="legal city">
+<main class="app">
+  <p class="eyebrow">HairBySusy · On-Call Team</p>
+
+  <section id="ask" aria-labelledby="askTitle">
+    <h1 id="askTitle">Where do you take clients?</h1>
+    <p class="hint">Choose the city where you take clients now, without the client paying for your transportation. We know you'd like to work in other places too, but you'll get more bookings this way.</p>
+    <div class="locs">
+      <p class="region" id="r-us">United States</p>
+      <div class="chips" role="group" aria-labelledby="r-us">
+        <button type="button" class="chip" data-value="New York"><span class="tick">✓</span>New York</button>
+        <button type="button" class="chip" data-value="Los Angeles"><span class="tick">✓</span>Los Angeles</button>
+        <button type="button" class="chip" data-value="Atlanta"><span class="tick">✓</span>Atlanta</button>
+        <button type="button" class="chip" data-value="Miami"><span class="tick">✓</span>Miami</button>
+        <button type="button" class="chip" data-value="Houston"><span class="tick">✓</span>Houston</button>
+        <button type="button" class="chip" data-value="Chicago"><span class="tick">✓</span>Chicago</button>
+        <button type="button" class="chip" data-value="Washington DC"><span class="tick">✓</span>Washington DC</button>
+        <button type="button" class="chip" data-value="Las Vegas"><span class="tick">✓</span>Las Vegas</button>
+      </div>
+      <p class="region" id="r-eu">Canada and Europe</p>
+      <div class="chips" role="group" aria-labelledby="r-eu">
+        <button type="button" class="chip" data-value="Toronto"><span class="tick">✓</span>Toronto</button>
+        <button type="button" class="chip" data-value="London"><span class="tick">✓</span>London</button>
+        <button type="button" class="chip" data-value="Paris"><span class="tick">✓</span>Paris</button>
+      </div>
+      <p class="region" id="r-af">Africa and the Middle East</p>
+      <div class="chips" role="group" aria-labelledby="r-af">
+        <button type="button" class="chip" data-value="Lagos"><span class="tick">✓</span>Lagos</button>
+        <button type="button" class="chip" data-value="Abuja"><span class="tick">✓</span>Abuja</button>
+        <button type="button" class="chip" data-value="Accra"><span class="tick">✓</span>Accra</button>
+        <button type="button" class="chip" data-value="Johannesburg"><span class="tick">✓</span>Johannesburg</button>
+        <button type="button" class="chip" data-value="Dubai"><span class="tick">✓</span>Dubai</button>
+      </div>
+      <label class="region" for="otherLoc">Somewhere else?</label>
+      <div class="addrow">
+        <input class="input" id="otherLoc" maxlength="40" autocomplete="off" placeholder="City, country">
+        <button type="button" class="addbtn" id="addLoc">Add</button>
+      </div>
+      <div class="chips custom" id="customLocs" aria-live="polite"></div>
+      <div class="err" id="err" role="alert"></div>
+    </div>
+    <button type="button" class="primary save" id="save">Save</button>
+    <p class="fine">HairBySusy will never ask you to pay to join the team or to get a job. If someone does, it isn't us. Report it to info@hairbysusy.com.</p>
+  </section>
+
+  <section id="done" aria-labelledby="doneTitle" hidden>
+    <svg class="mark" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="36"/><path d="M24 39l9 9 19-20"/></svg>
+    <h1 id="doneTitle">Thank you.</h1>
+    <p class="lede" id="doneText">We've saved your city.</p>
+  </section>
+
+  <section id="bad" aria-labelledby="badTitle" hidden>
+    <h1 id="badTitle">This link isn't working.</h1>
+    <p class="lede">Open the link from your HairBySusy email again. If it still doesn't work, email info@hairbysusy.com.</p>
+  </section>
+</main>
+<script src="/city/city.js"></script>
+</body>
+</html>
