@@ -44,3 +44,17 @@
   X-Robots-Tag: noindex, nofollow
   Cache-Control: no-cache
   Cross-Origin-Resource-Policy: same-origin
+
+# HBS client pages (bookhbs.com; for now only on Netlify test links): only their own scripts run,
+# nothing can frame them, they talk only to their own server, a client's private job link never
+# leaves in a Referer header, and search engines stay out until launch.
+/book
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; upgrade-insecure-requests
+  Referrer-Policy: no-referrer
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-cache
+/book/*
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; upgrade-insecure-requests
+  Referrer-Policy: no-referrer
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-cache
