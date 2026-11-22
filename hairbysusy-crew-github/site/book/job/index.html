@@ -74,6 +74,42 @@
       </div>
     </div>
 
+    <!-- matched -->
+    <div id="vMatched" hidden>
+      <p class="eyebrow">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        Matched
+      </p>
+      <h1 id="mTitle">You're matched.</h1>
+      <section class="block">
+        <p class="bigname" id="mNames"></p>
+        <p class="next">Checked by the HBS team</p>
+        <p class="next">Calls and texts go through HBS. To reach your stylist, email <a href="mailto:info@hairbysusy.com">info@hairbysusy.com</a> and we pass it on.</p>
+      </section>
+      <dl class="kv">
+        <div><dt>When</dt><dd id="mWhen"></dd></div>
+        <div><dt>Where</dt><dd id="mWhere"></dd></div>
+        <div><dt>Budget</dt><dd id="mBudget"></dd></div>
+      </dl>
+      <section class="block" id="addrBlock">
+        <label class="eyebrow" for="addr">Exact address</label>
+        <p class="addr" id="addrShown" hidden></p>
+        <div class="addrform" id="addrForm">
+          <input class="field small" id="addr" type="text" maxlength="200" autocomplete="street-address" placeholder="Street, apartment, floor">
+          <p class="help" id="addrHelp"></p>
+          <button type="button" class="cta press" id="addrSave">Save the address</button>
+        </div>
+        <button type="button" class="textlink" id="addrEdit" hidden>Change the address</button>
+        <p class="err" id="addrErr" role="alert" hidden></p>
+      </section>
+      <div class="notes">
+        <p>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <span id="mRule"></span>
+        </p>
+      </div>
+    </div>
+
     <!-- not paid yet -->
     <div id="vUnpaid" hidden>
       <p class="eyebrow">Booking fee not paid</p>

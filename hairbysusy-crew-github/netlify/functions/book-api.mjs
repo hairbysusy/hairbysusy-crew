@@ -1,14 +1,19 @@
-// HBS client jobs server (bookhbs.com): POST /api/book/jobs, /api/book/job, /api/book/pay
+// HBS client jobs server (bookhbs.com).
 //
-//   jobs  a client posts a job. It is saved unpaid in Susy's Wix site, then a Wix Payments checkout
-//         is made for the booking fee (30% of the budget). Answers the job's private link and the
-//         checkout address.
-//   job   the client's job page asks how the job stands. While it is unpaid, the server looks for
-//         the paid Wix order; once found, the job is posted.
-//   pay   the client pays for an unpaid job again (closed the checkout, card declined).
+//   POST /api/book/jobs     a client posts a job. It is saved unpaid in Susy's Wix site, then a Wix
+//                           Payments checkout is made for the booking fee (30% of the budget).
+//                           Answers the job's private link and the checkout address.
+//   POST /api/book/job      the client's job page asks how the job stands. While it is unpaid, the
+//                           server looks for the paid Wix order; once found, the job is posted.
+//   POST /api/book/pay      the client pays for an unpaid job again (closed the checkout, declined).
+//   POST /api/book/address  the matched client adds the exact address.
+//   POST /api/book/stylist  a stylist's own job page asks how the job stands for her.
+//   POST /api/book/answer   the stylist answers: "I'm available" (yes) or "Not this time" (no).
 //
-// Each job has a private link key. Only its SHA-256 is stored, and the client page sends the key
-// with every request. Clients see their own job only, and never anyone's phone, email or last name.
+// Private links: the client's link and each stylist's link are signed (lib/book/links.mjs), so
+// nothing stored in Wix can be turned into a working link. Clients see their own job only, and
+// never a stylist's phone, email or last name; stylists see the client's first name once booked,
+// and the address from the day before the job.
 //
 // Where it answers: bookhbs.com once that domain points here, and the test links: the live site's
 // own Netlify address (hairbysusy-crew.netlify.app, the only test link that has the Wix key, which
@@ -18,9 +23,11 @@
 
 import crypto from 'node:crypto';
 import { wixReady, logActivity } from '../lib/team/wix.mjs';
-import { readJob, dollars, dateLabel, timeLabel, cityNow, UNPAID_HOURS } from '../lib/book/rules.mjs';
+import { readJob } from '../lib/book/rules.mjs';
 import { insertJob, getJob, updateJob, countSince } from '../lib/book/store.mjs';
 import { createCheckout, findPayment, PayError } from '../lib/book/pay.mjs';
+import { clientKey, stylistKey, linksReady, sameText } from '../lib/book/links.mjs';
+import { clientView, stylistView, stylistAnswer, readAddress, expired, callPassed, FlowError, JOB_ID_RE } from '../lib/book/flow.mjs';
 
 const LIVE_HOSTS = new Set(['bookhbs.com', 'www.bookhbs.com']);
 const LIVE_TEST_HOST = 'hairbysusy-crew.netlify.app';
@@ -29,8 +36,9 @@ const MAX_BODY = 4096;
 const PER_SENDER_HOUR = 6; // jobs one sender can post in an hour
 const ALL_HOUR = 60; // jobs everyone together can post in an hour
 const MAX_CHECKOUTS = 8; // checkouts one job can open
-const ID_RE = /^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{10}$/;
+const ID_RE = JOB_ID_RE;
 const KEY_RE = /^[A-Za-z0-9_-]{24}$/;
+const STYLIST_KEY_RE = /^[A-Za-z0-9_-]{22}$/;
 const ID_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 
 const HEADERS = {
@@ -95,41 +103,6 @@ function newId() {
 
 const newKey = () => crypto.randomBytes(18).toString('base64url');
 
-// What the client's own job page may know about the job.
-function viewOf(id, doc, now = Date.now()) {
-  let status = doc.status;
-  if (status === 'unpaid' && expired(doc, now)) status = 'expired';
-  return {
-    j: id,
-    status,
-    test: Boolean(doc.test),
-    city: doc.city,
-    state: doc.state,
-    hood: doc.hood,
-    date: doc.date,
-    dateLabel: dateLabel(doc.date),
-    time: doc.time,
-    timeLabel: timeLabel(doc.time),
-    kind: doc.kind,
-    hair: doc.hair,
-    count: doc.count,
-    budget: doc.budget,
-    fee: dollars(doc.fee_cents),
-    first: (doc.client && doc.client.first) || '',
-    yes: Array.isArray(doc.yes) ? doc.yes.map((y) => ({ at: y.at })) : [],
-    paidAt: (doc.pay && doc.pay.paid_at) || null,
-  };
-}
-
-// An unpaid job can't be paid once it's 48 hours old, or once its call time has passed.
-function expired(doc, now = Date.now()) {
-  if (now - Date.parse(doc.created_at) > UNPAID_HOURS * 3600000) return true;
-  const here = cityNow(doc.tz, new Date(now));
-  if (doc.date < here.date) return true;
-  const mins = Number(doc.time.slice(0, 2)) * 60 + Number(doc.time.slice(3, 5));
-  return doc.date === here.date && mins <= here.minutes;
-}
-
 // Looks for the paid Wix order; once found, the job is posted. Answers the job as it now stands
 // and what Wix said: 'paid', 'pending' (an order exists, not paid yet), 'refunded' or 'none'.
 async function settle(id, job) {
@@ -180,25 +153,30 @@ async function postJob(req, site, context) {
   if ((await countSince(hourAgo, ipHash)) >= PER_SENDER_HOUR) return json(429, { error: 'too_many' });
   if ((await countSince(hourAgo)) >= ALL_HOUR) return json(429, { error: 'busy' });
 
-  const key = newKey();
   const now = new Date();
   const doc = {
     v: 1,
     status: 'unpaid',
     test: site.test,
+    origin: site.origin,
     created_at: now.toISOString(),
     ...job,
     pay: { sessions: [] },
     yes: [],
     log: [{ at: now.toISOString(), what: 'posted' + (site.test ? ' from a test link' : '') }],
   };
-  const meta = { keyHash: sha256(key), ipHash, createdAt: now.getTime(), test: site.test };
+  // The client's link key is signed from the job id (so the team can send the link again), or
+  // random if links can't be signed here. Its hash is kept with the job either way.
   let id = '';
+  let key = '';
   for (let attempt = 0; attempt < 3 && !id; attempt++) {
     const tryId = newId();
+    const tryKey = linksReady() ? clientKey(tryId) : newKey();
+    const meta = { keyHash: sha256(tryKey), ipHash, createdAt: now.getTime(), test: site.test };
     try {
       await insertJob(tryId, doc, meta);
       id = tryId;
+      key = tryKey;
     } catch (e) {
       if (!(e && e.code === 'WDE0074') || attempt === 2) throw e; // WDE0074: that id is taken
     }
@@ -221,8 +199,73 @@ async function loadOwn(body) {
   const k = typeof body.k === 'string' ? body.k : '';
   if (!ID_RE.test(j) || !KEY_RE.test(k)) return null;
   const job = await getJob(j);
-  if (!job || !job.meta.keyHash || !sameHash(job.meta.keyHash, sha256(k))) return null;
+  if (!job) return null;
+  const byHash = Boolean(job.meta.keyHash) && sameHash(job.meta.keyHash, sha256(k));
+  const bySignature = !byHash && linksReady() && sameText(k, clientKey(j));
+  if (!byHash && !bySignature) return null;
   return { id: j, key: k, job };
+}
+
+// A stylist's own link: the job, and which stylist the signed key belongs to.
+async function loadStylist(body) {
+  const j = typeof body.j === 'string' ? body.j : '';
+  const t = typeof body.t === 'string' ? body.t : '';
+  if (!ID_RE.test(j) || !STYLIST_KEY_RE.test(t) || !linksReady()) return null;
+  const job = await getJob(j);
+  if (!job) return null;
+  const pid = Object.keys(job.doc.people || {}).find((p) => sameText(t, stylistKey(j, p)));
+  return pid ? { id: j, pid, job } : null;
+}
+
+async function addAddress(req) {
+  const body = await readBody(req);
+  if (!body) return json(400, { error: 'form' });
+  const own = await loadOwn(body);
+  if (!own) return json(404, { error: 'not_found' });
+  const text = readAddress(body.address);
+  if (!text) return json(400, { error: 'address' });
+  const doc = own.job.doc;
+  if (doc.status !== 'matched' || callPassed(doc)) return json(409, { error: 'closed', job: clientView(own.id, doc) });
+  const saved = await updateJob(own.id, (cur) => {
+    if (cur.status !== 'matched') return null;
+    const at = new Date().toISOString();
+    return { ...cur, address: { text, at }, log: (cur.log || []).concat({ at, what: 'client added the address' }).slice(-60) };
+  }, 'client page');
+  if (!saved) return json(404, { error: 'not_found' });
+  return json(200, { job: clientView(own.id, saved.doc) });
+}
+
+async function stylistStatus(req) {
+  const body = await readBody(req);
+  if (!body) return json(400, { error: 'form' });
+  const me = await loadStylist(body);
+  if (!me) return json(404, { error: 'not_found' });
+  return json(200, { job: stylistView(me.id, me.job.doc, me.pid) });
+}
+
+async function stylistAnswers(req) {
+  const body = await readBody(req);
+  if (!body) return json(400, { error: 'form' });
+  if (body.answer !== 'yes' && body.answer !== 'no') return json(400, { error: 'answer' });
+  const me = await loadStylist(body);
+  if (!me) return json(404, { error: 'not_found' });
+  let changed = false;
+  try {
+    const saved = await updateJob(me.id, (cur) => {
+      const next = stylistAnswer(cur, me.pid, body.answer);
+      changed = next !== cur;
+      return changed ? next : null;
+    }, 'stylist page');
+    if (!saved) return json(404, { error: 'not_found' });
+    if (changed) {
+      const who = (saved.doc.people[me.pid] || {}).first || 'a stylist';
+      await logActivity('stylist page', body.answer === 'yes' ? 'said yes' : 'not this time', 'client/' + me.id, who).catch(() => {});
+    }
+    return json(200, { job: stylistView(me.id, saved.doc, me.pid) });
+  } catch (e) {
+    if (e instanceof FlowError) return json(409, { error: e.code, job: stylistView(me.id, me.job.doc, me.pid) });
+    throw e;
+  }
 }
 
 async function jobStatus(req) {
@@ -240,7 +283,7 @@ async function jobStatus(req) {
       console.error('book: payment check failed', own.id, e && (e.detail || e.code || e.message));
     }
   }
-  return json(200, { job: viewOf(own.id, job.doc), payment });
+  return json(200, { job: clientView(own.id, job.doc), payment });
 }
 
 async function payAgain(req, site) {
@@ -257,9 +300,9 @@ async function payAgain(req, site) {
     // can't check right now: don't risk a second payment
     return json(503, { error: 'payments_failed' });
   }
-  if (job.doc.status !== 'unpaid') return json(200, { job: viewOf(own.id, job.doc), payment });
-  if (payment === 'pending') return json(409, { error: 'pending', job: viewOf(own.id, job.doc), payment });
-  if (expired(job.doc)) return json(409, { error: 'expired', job: viewOf(own.id, job.doc) });
+  if (job.doc.status !== 'unpaid') return json(200, { job: clientView(own.id, job.doc), payment });
+  if (payment === 'pending') return json(409, { error: 'pending', job: clientView(own.id, job.doc), payment });
+  if (expired(job.doc)) return json(409, { error: 'expired', job: clientView(own.id, job.doc) });
   if (((job.doc.pay && job.doc.pay.sessions) || []).length >= MAX_CHECKOUTS) return json(429, { error: 'too_many' });
   try {
     const payUrl = await openCheckout(site, own.id, own.key);
@@ -282,6 +325,9 @@ export default async (req, context) => {
     if (route === '/api/book/jobs') return await postJob(req, site, context);
     if (route === '/api/book/job') return await jobStatus(req);
     if (route === '/api/book/pay') return await payAgain(req, site);
+    if (route === '/api/book/address') return await addAddress(req);
+    if (route === '/api/book/stylist') return await stylistStatus(req);
+    if (route === '/api/book/answer') return await stylistAnswers(req);
     return json(404, { error: 'not_found' });
   } catch (e) {
     console.error('book: failed', route, e && (e.code || e.status || e.message));
@@ -289,4 +335,4 @@ export default async (req, context) => {
   }
 };
 
-export const config = { path: ['/api/book/jobs', '/api/book/job', '/api/book/pay'] };
+export const config = { path: ['/api/book/jobs', '/api/book/job', '/api/book/pay', '/api/book/address', '/api/book/stylist', '/api/book/answer'] };

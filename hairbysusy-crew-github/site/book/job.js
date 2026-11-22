@@ -6,7 +6,7 @@
 (() => {
   const H = window.HBS;
   const $ = (id) => document.getElementById(id);
-  const VIEWS = ['vLoading', 'vPosted', 'vUnpaid', 'vConfirm', 'vEnd'];
+  const VIEWS = ['vLoading', 'vPosted', 'vMatched', 'vUnpaid', 'vConfirm', 'vEnd'];
 
   const q = new URLSearchParams(location.search);
   const j = q.get('j') || '';
@@ -63,18 +63,19 @@
     return hours < 24 ? hours + ' hr ago' : Math.floor(hours / 24) + ' d ago';
   }
 
+  // Once someone has said yes, the team is checking: show "We check" as the current step.
+  const yesStage = (job) => ((job.yes || []).length ? 2 : 1);
+
   function renderPosted(job) {
     meta(job);
     const yes = Array.isArray(job.yes) ? job.yes : [];
-    const matched = job.status === 'matched';
-    $('postedTitle').textContent = matched ? "You're matched." : 'Job posted.';
-    const stage = matched ? 3 : 1; // 0 posted, 1 saying yes, 2 we check, 3 matched
+    const stage = yesStage(job); // 0 posted, 1 saying yes, 2 we check, 3 matched
     ['tPosted', 'tYes', 'tCheck', 'tMatched'].forEach((id, i) => {
       const li = $(id);
       li.className = i < stage ? 'done' : i === stage ? 'now' : '';
       if (i === stage) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
     });
-    $('nextLine').textContent = matched ? "You're matched with a stylist our team checked." : 'Next, our team checks their work and calls them.';
+    $('nextLine').textContent = stage === 2 ? 'Our team is checking their work and calling them.' : 'Next, our team checks their work and calls them.';
     $('yesNum').textContent = String(yes.length);
     $('yesLbl').textContent = yes.length === 1 ? 'stylist said yes' : 'stylists said yes';
     $('yesCity').textContent = job.city;
@@ -89,6 +90,32 @@
     list.hidden = !yes.length;
     $('yesWaiting').hidden = yes.length > 0;
     show('vPosted');
+    buttons();
+  }
+
+  // Matched: the stylist's first name, and the exact address (only the booked stylist gets it,
+  // the day before the job).
+  let editingAddress = false;
+  function renderMatched(job) {
+    const names = (job.stylists || []).map((x) => x.first).filter(Boolean);
+    const joined = names.length <= 1 ? (names[0] || 'Your stylist') : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+    const done = job.status === 'done';
+    $('mTitle').textContent = done ? 'Job done.' : "You're matched.";
+    $('mNames').textContent = joined;
+    $('mWhen').textContent = job.dateLabel + ' · ' + job.timeLabel;
+    $('mWhere').textContent = job.hood + ', ' + job.city;
+    $('mBudget').textContent = '$' + Number(job.budget).toLocaleString('en-US') + (job.count > 1 ? ' each' : '') + ' · you pay ' + (names.length > 1 ? 'them' : 'her') + ' directly';
+    $('mRule').textContent = 'Your booking fee is now non-refundable. Book ' + joined + ' again through HBS only.';
+    $('addrHelp').textContent = 'Only ' + joined + (names.length > 1 ? ' get' : ' gets') + ' this, the day before the job.';
+    const shown = $('addrShown');
+    const has = Boolean(job.address);
+    shown.textContent = job.address || '';
+    shown.hidden = !has || editingAddress;
+    $('addrForm').hidden = !job.addressOpen || (has && !editingAddress);
+    $('addrEdit').hidden = !job.addressOpen || !has || editingAddress;
+    $('addrBlock').hidden = !job.addressOpen && !has;
+    if (!editingAddress && document.activeElement !== $('addr')) $('addr').value = job.address || '';
+    show('vMatched');
     buttons();
   }
 
@@ -119,7 +146,10 @@
     last = job;
     H.saveJob({ j, k, label: job.dateLabel + ' · ' + job.city });
     clearTimeout(timer);
-    if (job.status === 'posted' || job.status === 'matched') {
+    if (job.status === 'matched' || job.status === 'done') {
+      renderMatched(job);
+      if (job.status === 'matched') schedule(120000);
+    } else if (job.status === 'posted') {
       renderPosted(job);
       schedule(60000);
     } else if (job.status === 'unpaid') {
@@ -185,6 +215,39 @@
     if (d.error === 'expired') return;
     const err = $('payErr');
     err.textContent = PAY_MESSAGES[d.error] || (r.status === 0 ? 'No connection. Check your internet and try again.' : "We couldn't open the checkout. Try again in a minute.");
+    err.hidden = false;
+  });
+
+  $('addrEdit').addEventListener('click', () => {
+    editingAddress = true;
+    if (last) renderMatched(last);
+    $('addr').focus();
+  });
+  $('addrSave').addEventListener('click', async () => {
+    if (busy) return;
+    const err = $('addrErr');
+    const value = $('addr').value.trim();
+    if (value.length < 5 || !/\p{L}/u.test(value)) {
+      err.textContent = 'Add the street address, with the apartment or floor.';
+      err.hidden = false;
+      $('addr').focus();
+      return;
+    }
+    busy = true;
+    $('addrSave').disabled = true;
+    const r = await H.api('/api/book/address', { j, k, address: value });
+    busy = false;
+    $('addrSave').disabled = false;
+    if (r.status === 200 && r.data.job) {
+      editingAddress = false;
+      err.hidden = true;
+      render({ job: r.data.job, payment: '' });
+      return;
+    }
+    if (r.data && r.data.job) render({ job: r.data.job, payment: '' });
+    err.textContent = r.status === 400 ? 'Add the street address, with the apartment or floor.'
+      : r.status === 409 ? 'The address can’t be changed now. Email info@hairbysusy.com.'
+        : r.status === 0 ? 'No connection. Check your internet and try again.' : 'That didn’t save. Try again in a minute.';
     err.hidden = false;
   });
 
