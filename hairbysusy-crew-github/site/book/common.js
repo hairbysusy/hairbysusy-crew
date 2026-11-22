@@ -4,7 +4,7 @@
 
 (() => {
   const host = location.hostname;
-  const test = /--hairbysusy-crew\.netlify\.app$/.test(host) || host === 'localhost' || host === '127.0.0.1';
+  const test = host === 'hairbysusy-crew.netlify.app' || /--hairbysusy-crew\.netlify\.app$/.test(host) || host === 'localhost' || host === '127.0.0.1';
   const flag = document.getElementById('testflag');
   if (flag && test) flag.hidden = false;
 

@@ -4,7 +4,7 @@ Two things live in this repository, both hosted on Netlify, which deploys it aut
 
 1. **crew.hairbysusy.com**: the public On-Call Team sign-up.
 2. **team.hairbysusy.com**: Susy's Crew, the private team app. Only the Google accounts listed in `ALLOWED_EMAILS` can sign in.
-3. **HBS client pages (`/book/`)**: "Need a stylist fast?" for bookhbs.com, where clients post a job and pay the booking fee. Being tested: they open only on Netlify test links (deploy previews and branch deploys), never on the crew or team sites, and bookhbs.com doesn't point here yet.
+3. **HBS client pages (`/book/`)**: "Need a stylist fast?" for bookhbs.com, where clients post a job and pay the booking fee. Being tested at https://hairbysusy-crew.netlify.app/book/ (marked as a test link, hidden from search). They never open on the crew or team sites, and bookhbs.com doesn't point here yet. Deploy previews show the pages too, but can't post: Netlify keeps the Wix key out of deploy previews of this public repository, which is the safe setting.
 
 ## Files
 

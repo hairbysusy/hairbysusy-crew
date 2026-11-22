@@ -10,10 +10,11 @@
 // Each job has a private link key. Only its SHA-256 is stored, and the client page sends the key
 // with every request. Clients see their own job only, and never anyone's phone, email or last name.
 //
-// Where it answers: bookhbs.com once that domain points here, and Netlify test links (deploy
-// previews and branch deploys of this site). Jobs from test links are marked test and accept a
-// budget from $5, so a real payment can be tried for $1.50 and refunded. Production hosts of this
-// site (crew.hairbysusy.com, team.hairbysusy.com) never answer.
+// Where it answers: bookhbs.com once that domain points here, and the test links: the live site's
+// own Netlify address (hairbysusy-crew.netlify.app, the only test link that has the Wix key, which
+// Netlify keeps out of deploy previews of this public repository) and deploy previews or branch
+// deploys. Jobs from test links are marked test and accept a budget from $5, so a real payment can
+// be tried for $1.50 and refunded. crew.hairbysusy.com and team.hairbysusy.com never answer.
 
 import crypto from 'node:crypto';
 import { wixReady, logActivity } from '../lib/team/wix.mjs';
@@ -22,6 +23,7 @@ import { insertJob, getJob, updateJob, countSince } from '../lib/book/store.mjs'
 import { createCheckout, findPayment, PayError } from '../lib/book/pay.mjs';
 
 const LIVE_HOSTS = new Set(['bookhbs.com', 'www.bookhbs.com']);
+const LIVE_TEST_HOST = 'hairbysusy-crew.netlify.app';
 const TEST_HOST_RE = /^(deploy-preview-\d{1,5}|[a-z][a-z0-9-]{0,40})--hairbysusy-crew\.netlify\.app$/;
 const MAX_BODY = 4096;
 const PER_SENDER_HOUR = 6; // jobs one sender can post in an hour
@@ -54,6 +56,7 @@ export function siteOf(req, context) {
     if (deployContext && deployContext !== 'production') return null;
     return { origin: 'https://' + host, test: false };
   }
+  if (host === LIVE_TEST_HOST) return { origin: 'https://' + host, test: true };
   if (TEST_HOST_RE.test(host) && !host.startsWith('main--')) {
     if (deployContext === 'production') return null;
     return { origin: 'https://' + host, test: true };
