@@ -65,6 +65,11 @@
   var store = { crew: new Map(), jobs: new Map() };
   var listeners = { crew: [], jobs: [] };
   var inboxListeners = [];
+  // HBS client jobs (bookhbs.com): read with the rest of the list, changed only through /client.
+  var clients = null, clientsJson = '', clientListeners = [];
+  function emitClients() {
+    clientListeners.slice().forEach(function (cb) { try { cb(clone(clients || [])); } catch (e) { console.error(e); } });
+  }
   var loaded = false, queue = [], busy = false, epoch = 0, idleWaiters = [], resync = false;
 
   function snapshot(col) {
@@ -83,6 +88,10 @@
       if (!loaded || JSON.stringify(Array.from(next)) !== before) emit(col);
     });
     loaded = true;
+    if (data.clients !== null && data.clients !== undefined) {
+      var cj = JSON.stringify(data.clients);
+      if (cj !== clientsJson) { clientsJson = cj; clients = data.clients; emitClients(); }
+    }
     var inbox = data.inbox || [];
     if (inbox.length) inboxListeners.forEach(function (cb) { try { cb(clone(inbox)); } catch (e) { console.error(e); } });
   }
@@ -185,7 +194,7 @@
 
   async function signOut() {
     try { await call('logout', {}); } catch (e) { /* signed out either way */ }
-    store.crew.clear(); store.jobs.clear();
+    store.crew.clear(); store.jobs.clear(); clients = null; clientsJson = '';
     showGate('signedout');
     $('gateMsg').textContent = 'Signed out.';
   }
@@ -204,7 +213,23 @@
       return;
     }
     showApp(me.email);
-    resolveReady({ collection: collection, wix: wix, email: me.email, onInbox: function (cb) { inboxListeners.push(cb); }, inboxDone: function (id) { return call('write', { op: 'delete', col: 'inbox', id: id }); } });
+    resolveReady({
+      collection: collection, wix: wix, email: me.email,
+      onInbox: function (cb) { inboxListeners.push(cb); },
+      inboxDone: function (id) { return call('write', { op: 'delete', col: 'inbox', id: id }); },
+      onClients: function (cb) { clientListeners.push(cb); if (clients) queueMicrotask(function () { cb(clone(clients)); }); },
+      // A change to a client job: saved on the server first, then shown.
+      client: async function (body) {
+        var r = await call('client', body);
+        if (r && r.job && clients) {
+          clients = clients.map(function (c) { return c.id === r.job.id ? Object.assign({}, c, { data: r.job.data }) : c; });
+          clientsJson = JSON.stringify(clients);
+          emitClients();
+        }
+        refreshSoon(900);
+        return r && r.job;
+      }
+    });
     refresh();
     setInterval(function () { if (document.visibilityState === 'visible') refresh(); }, POLL_MS);
     document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') refresh(); });

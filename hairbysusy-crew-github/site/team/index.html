@@ -53,6 +53,7 @@
 
   <div class="seg" role="tablist" aria-label="Views">
     <button type="button" role="tab" id="tab-jobs" aria-selected="true" data-view="jobs">Jobs <span class="badge" id="yesCount" hidden>0</span></button>
+    <button type="button" role="tab" id="tab-clients" aria-selected="false" data-view="clients">Clients <span class="badge" id="clientCount" hidden>0</span></button>
     <button type="button" role="tab" id="tab-review" aria-selected="false" data-view="review">Review <span class="badge" id="reviewCount" hidden>0</span></button>
     <button type="button" role="tab" id="tab-all" aria-selected="false" data-view="all">Crew</button>
   </div>
@@ -67,6 +68,13 @@
   <section class="view on" id="view-jobs" aria-labelledby="tab-jobs">
     <div class="jobs" id="jobsList"></div>
     <details class="past" id="pastWrap" hidden><summary id="pastSummary">Past jobs</summary><div class="jobs" id="pastList"></div></details>
+  </section>
+
+  <!-- HBS CLIENT JOBS -->
+  <section class="view" id="view-clients" aria-labelledby="tab-clients">
+    <div class="jobs" id="clientsList"></div>
+    <details class="past" id="clientsUnpaidWrap" hidden><summary id="clientsUnpaidSummary">Posted but not paid</summary><div class="jobs" id="clientsUnpaidList"></div></details>
+    <details class="past" id="clientsPastWrap" hidden><summary id="clientsPastSummary">Done and cancelled</summary><div class="jobs" id="clientsPastList"></div></details>
   </section>
 
   <!-- REVIEW -->

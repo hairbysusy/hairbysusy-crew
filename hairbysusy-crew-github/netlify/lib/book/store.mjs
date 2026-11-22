@@ -89,3 +89,27 @@ export async function countSince(since, ipHash) {
   });
   return (r.dataItems || []).length;
 }
+
+// Every client job, newest first (for the team app). Old unpaid jobs that expired long ago are
+// left out: they were never paid and nobody needs them.
+export async function listJobs({ max = 300 } = {}) {
+  const out = [];
+  const weekAgo = Date.now() - 7 * 86400000;
+  for (let offset = 0; offset < max; offset += 100) {
+    const r = await wixRequest('POST', '/data/v2/items/query', {
+      body: {
+        dataCollectionId: COLLECTION,
+        query: {
+          filter: { $or: [{ status: { $ne: 'unpaid' } }, { createdAt: { $gt: weekAgo } }] },
+          sort: [{ fieldName: 'createdAt', order: 'DESC' }],
+          paging: { limit: 100, offset },
+        },
+        consistentRead: true,
+      },
+    });
+    const items = r.dataItems || [];
+    for (const item of items) { const j = toJob(item); if (j) out.push(j); }
+    if (items.length < 100) break;
+  }
+  return out;
+}

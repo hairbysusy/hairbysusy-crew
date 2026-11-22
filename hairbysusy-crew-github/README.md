@@ -13,9 +13,9 @@ Two things live in this repository, both hosted on Netlify, which deploys it aut
 - `netlify/functions/submission-created.mjs`: runs on every new application
 - `netlify/functions/team-api.mjs`: the team app's server at `/api/team/*`
 - `netlify/lib/team/`: shared server code (Google sign-in check, Wix storage, Wix Contacts)
-- `site/book/`: the HBS client pages: home, post a job (six steps), the client's private job page, terms and privacy summaries
-- `netlify/functions/book-api.mjs`: the client pages' server at `/api/book/jobs`, `/api/book/job` and `/api/book/pay`
-- `netlify/lib/book/`: the job rules and booking fee (`rules.mjs`), Wix storage (`store.mjs`) and the Wix Payments checkout (`pay.mjs`)
+- `site/book/`: the HBS client pages: home, post a job (six steps), the client's private job page, each stylist's private job page (`/book/s/`), terms and privacy summaries
+- `netlify/functions/book-api.mjs`: the client pages' server at `/api/book/*` (post, pay, the client's job, the address, the stylist's job and her answer)
+- `netlify/lib/book/`: the job rules and booking fee (`rules.mjs`), Wix storage (`store.mjs`), the Wix Payments checkout (`pay.mjs`), what happens after payment (`flow.mjs`) and the signed private links (`links.mjs`)
 
 ## Where data lives
 
@@ -59,6 +59,16 @@ Updates pushed to the main branch are published automatically.
 4. Limits: 6 jobs an hour from one connection, 60 an hour in all, 8 checkouts per job.
 
 Before it can take payments, the Wix key needs two more permissions: generating checkout sessions and reading orders. Without them the job is still saved and the page says payments aren't switched on yet.
+
+## HBS client jobs: after the client pays
+
+1. The job shows in the team app under **Clients**, with the client's details, the booking fee and Wix order number, and the approved full-job stylists who take clients in that city (fastest to reply first).
+2. **Text** opens Messages with the job and that stylist's own link (`/book/s/`). She taps "I'm available" or "Not this time" on that page, and the answer shows in the team app. The client's job page shows each yes, without names.
+3. The team calls who said yes, then taps **Book**. Once enough stylists are booked the job is matched: the others who said yes see it went to another stylist, the booked stylist sees the client's first name, and the client sees the stylist's first name and adds the exact address. The stylist sees the address from the day before the job.
+4. **Text client** and **Text booked** send the right message with the right link. Until texting through Sent is switched on, these texts go from the team's own phone.
+5. Cancelling a job in the team app tells everyone on their pages. Refunds are made from the Wix order.
+
+Private links are signed, not stored (`links.mjs`): each one is an HMAC of the job (and stylist) under a key derived from `GOOGLE_CLIENT_SECRET`, so the team app can rebuild any link and nothing in Wix can be turned into one.
 
 To open another city, set `open: true` for it in `netlify/lib/book/rules.mjs` and in `site/book/post.js`. Before bookhbs.com points here: add bookhbs.com to the Netlify project, let search engines see the home page (its `noindex` tag and the `/book` rules in `_headers`; the job pages stay `noindex`), and publish the full terms and privacy policy.
 

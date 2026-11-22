@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0C0C11">
+<title>Your HBS job</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/book/book.css">
+</head>
+<body class="stylistside">
+<div class="glow blue" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+<p class="testflag" id="testflag" hidden>Test link · not public</p>
+<div class="page">
+
+  <header class="jobtop">
+    <span class="brandpair"><span class="brand">HBS</span><span class="eyebrow">Stylist</span></span>
+  </header>
+
+  <main class="job">
+
+    <div id="vLoading">
+      <p class="eyebrow">Your job</p>
+      <p class="say" id="loadingText">Loading the job…</p>
+    </div>
+
+    <!-- the job post -->
+    <div id="vOpen" hidden>
+      <p class="eyebrow" id="postedLine">New job</p>
+      <h1 class="hood" data-f="hood"></h1>
+      <p class="meta" data-f="city"></p>
+      <div class="paybig">
+        <span class="amt" data-f="pay"></span>
+        <span class="paynote"><span>Take-home</span><span>Paid to you by the client</span></span>
+      </div>
+      <dl class="kv">
+        <div><dt>When</dt><dd data-f="when"></dd></div>
+        <div><dt>The job</dt><dd data-f="jobline"></dd></div>
+        <div><dt>Address</dt><dd>The day before the job</dd></div>
+      </dl>
+      <div class="clientnote" data-note hidden>
+        <p class="eyebrow">Note from the client</p>
+        <p data-f="note"></p>
+      </div>
+      <p class="lockline small">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        <span>Once you're booked, you get the client's first name, and the address the day before the job. HBS takes nothing from your pay.</span>
+      </p>
+    </div>
+
+    <!-- said yes -->
+    <div id="vYes" hidden>
+      <p class="eyebrow">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        Sent to HBS
+      </p>
+      <h1>You said yes.</h1>
+      <p class="say">Our team checks everyone who says yes. Keep your phone close. We may call you.</p>
+      <ol class="track three" aria-label="Status">
+        <li class="done">Said yes</li>
+        <li class="now" aria-current="step">We check</li>
+        <li>Booked</li>
+      </ol>
+      <p class="next">This page updates when we decide. If you're booked, we also message you.</p>
+      <section class="jobcard" aria-label="The job">
+        <span class="jc-left"><b data-f="hood"></b><small data-f="when"></small><small data-f="jobline"></small></span>
+        <span class="jc-pay" data-f="pay"></span>
+      </section>
+      <div class="wait">
+        <p class="eyebrow">While you wait</p>
+        <p>Make sure your Instagram shows your latest work. It's the first thing we look at.</p>
+      </div>
+    </div>
+
+    <!-- booked -->
+    <div id="vBooked" hidden>
+      <p class="eyebrow">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        Booked
+      </p>
+      <h1>You're booked.</h1>
+      <p class="say" id="beThere"></p>
+      <section class="block">
+        <p class="eyebrow">Client</p>
+        <p class="bigname" data-f="client"></p>
+        <p class="next">Calls and texts with the client go through HBS.</p>
+      </section>
+      <section class="block">
+        <p class="eyebrow">Address</p>
+        <p class="addr" id="addrText"></p>
+        <p class="next" id="addrSub"></p>
+      </section>
+      <dl class="kv">
+        <div><dt>When</dt><dd data-f="when"></dd></div>
+        <div><dt>The job</dt><dd data-f="jobline"></dd></div>
+        <div><dt>Pay</dt><dd data-f="paywho"></dd></div>
+      </dl>
+      <p class="lockline small">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        <span>Contact the client only through HBS. Cancelling within 24 hours of the job means permanent removal from the team.</span>
+      </p>
+    </div>
+
+    <!-- not picked, said no, cancelled, closed, missing -->
+    <div id="vEnd" hidden>
+      <p class="eyebrow" id="endEyebrow"></p>
+      <h1 id="endTitle"></h1>
+      <p class="say" id="endText"></p>
+    </div>
+    <p class="err" id="err" role="alert" hidden></p>
+  </main>
+
+  <div class="actions" id="openActions" hidden>
+    <button type="button" class="cta press" id="yesBtn">I'm available</button>
+    <p class="fine">Cancelling within 24 hours of the job, or contacting a client outside HBS, means permanent removal from the team.</p>
+    <button type="button" class="textbtn press" id="noBtn">Not this time</button>
+  </div>
+  <div class="actions" id="otherActions" hidden>
+    <p class="fine">Questions about this job: <a href="mailto:info@hairbysusy.com">info@hairbysusy.com</a></p>
+  </div>
+</div>
+<script src="/book/common.js"></script>
+<script src="/book/stylist.js"></script>
+</body>
+</html>

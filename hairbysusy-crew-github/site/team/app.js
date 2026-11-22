@@ -8,6 +8,7 @@
 
   let db = null, crewCol = null, jobsCol = null;
   let people = [], jobs = [], gotPeople = false, gotJobs = false;
+  let clients = [], gotClients = false; // HBS client jobs from bookhbs.com
   let view = 'jobs', statusF = 'all', q = '', openId = null;
 
   /* ---------- helpers ---------- */
@@ -152,6 +153,8 @@
     if (view === 'jobs') renderJobs();
     if (view === 'review') renderReview();
     if (view === 'all') renderAll();
+    renderClientBadge();
+    if (view === 'clients') renderClients();
     if (nt && $('noticeSheet').classList.contains('on')) renderNotices();
     if (mcp && wixLast && !wixBusy && wixPending().length) wixSoon();
   }
@@ -287,6 +290,153 @@
   }
   $('jobsList').addEventListener('click', onJobClick);
   $('pastList').addEventListener('click', onJobClick);
+
+  /* ---------- HBS client jobs (bookhbs.com) ----------
+     A client posts a job and pays the booking fee on bookhbs.com. Here the team texts stylists
+     their own job link, sees who said yes (they answer on that page), and books the match.
+     The server keeps the job; every change here is saved there first. */
+  const CJ_LIVE = ['posted', 'matched'];
+  const cjMoney = n => '$' + Number(n || 0).toLocaleString('en-US');
+  const cjWhen = c => dayLabel(c.date, true) + ' at ' + timeLabel(c.time);
+  const cjPeople = c => Object.entries(c.data.people || {});
+  const cjNeedsYou = c => c.data.status === 'posted' && (cjPeople(c).some(([, x]) => x.state === 'yes') || !cjPeople(c).length);
+  const cjText = {
+    ask: (d, name, link) => 'Hi ' + (first(name) || 'there') + ', this is HBS. A client in ' + d.hood + ', ' + d.city + ' needs a stylist on ' + cjWhen(d) + ': ' + d.kind + ', ' + (d.hair || []).join(', ') + '. ' + cjMoney(d.budget) + ' take-home, paid to you by the client. See the job and say yes here: ' + link,
+    booked: (d, name, link) => 'Hi ' + (first(name) || 'there') + ', you’re booked for the HBS job in ' + d.hood + ' on ' + cjWhen(d) + '. Your job page has the client’s first name, and the address from the day before: ' + link + ' Cancelling within 24 hours of the job means permanent removal from the team.',
+    notPicked: (d, name) => 'Hi ' + (first(name) || 'there') + ', the HBS job in ' + d.hood + ' on ' + cjWhen(d) + ' went to another stylist. Thank you for saying yes. We’ll send you the next job.',
+    clientPosted: (d, link) => 'Hi ' + ((d.client || {}).first || 'there') + ', this is HBS. Your job is posted. Follow it here: ' + link,
+    clientMatched: (d, names, link) => 'Hi ' + ((d.client || {}).first || 'there') + ', this is HBS. You’re matched with ' + names + ' for ' + cjWhen(d) + '. Add the exact address on your job page: ' + link,
+  };
+  const smsHref = (num, body) => 'sms:+' + String(num || '').replace(/^\+/, '') + '?&body=' + encodeURIComponent(body);
+  const cjPhone = n => { const m = /^\+1(\d{3})(\d{3})(\d{4})$/.exec(String(n || '')); return m ? '(' + m[1] + ') ' + m[2] + '-' + m[3] : String(n || ''); };
+
+  function renderClientBadge(){
+    const n = clients.filter(cjNeedsYou).length;
+    $('clientCount').hidden = !n; $('clientCount').textContent = n;
+  }
+
+  function cjRow(c, pid, x){
+    const d = c.data, p = crewById(pid) || {};
+    const name = p.name || (x && x.name) || 'Unknown';
+    const num = e164(p.phone || '', p.city || d.city);
+    const link = (c.links.stylists || {})[pid] || '';
+    const st = x ? x.state : 'to_ask';
+    const D = ' data-cj="' + esc(c.id) + '" data-pid="' + esc(pid) + '"';
+    const btn = (label, attrs, solid) => '<button class="btn small' + (solid ? ' solid' : '') + '" type="button"' + D + attrs + '>' + label + '</button>';
+    const sms = (label, body, attrs, solid) => num ? '<a class="btn small' + (solid ? ' solid' : '') + '"' + D + (attrs || '') + ' href="' + esc(smsHref(num, body)) + '">' + label + '</a>' : '';
+    const call = num ? '<a class="btn small solid" href="tel:+' + esc(num) + '">Call ' + esc(first(name)) + '</a>' : '';
+    const live = d.status === 'posted' || d.status === 'matched';
+    let acts = '', cls = '', when = '';
+    if (st === 'to_ask') {
+      acts = link ? sms('Text', cjText.ask(d, name, link), ' data-cact="ask"', true) + btn('Copy link', ' data-cact="copy" data-link="' + esc(link) + '"') : '';
+    } else if (st === 'asked') {
+      when = x.asked_at ? 'Asked ' + fmtTimeStamp(x.asked_at) : 'Asked';
+      acts = (link ? sms('Text again', cjText.ask(d, name, link)) : '') + (live ? btn('Yes', ' data-cact="state" data-state="yes"') + btn('No', ' data-cact="state" data-state="no"') : '');
+    } else if (st === 'yes') {
+      cls = 'yes'; when = 'Said yes ' + fmtTimeStamp(x.yes_at || x.replied_at);
+      acts = call + (live ? btn('Book', ' data-cact="state" data-state="booked"', false) : '');
+    } else if (st === 'booked') {
+      cls = 'booked'; when = 'Booked ' + fmtTimeStamp(x.booked_at);
+      acts = call + (link ? sms('Text booked', cjText.booked(d, name, link)) : '') + (live ? btn('Undo', ' data-cact="state" data-state="yes"') : '');
+    } else if (st === 'not_picked') {
+      cls = 'no'; when = 'Not picked';
+      acts = sms('Text', cjText.notPicked(d, name)) + (live && d.status === 'posted' ? btn('Undo', ' data-cact="state" data-state="yes"') : '');
+    } else if (st === 'no') {
+      cls = 'no'; when = 'Not this time';
+      acts = live ? btn('Undo', ' data-cact="state" data-state="asked"') : '';
+    }
+    const sp = SPEED[p.response_time] ?? -1;
+    const tags = sp >= 0 ? '<span class="pill ' + SPEED_CLASS[sp] + '">' + esc(p.response_time) + '</span>' : '';
+    return '<div class="prow ' + cls + '"><span class="who">' + esc(name) + '</span><div class="acts">' + acts + '</div>' +
+      '<div class="info">' + tags + (when ? '<span>' + esc(when) + '</span>' : '') + '<span class="num">' + esc(p.phone || '') + '</span></div></div>';
+  }
+
+  function cjCard(c){
+    const d = c.data, cl = d.client || {}, list = cjPeople(c);
+    const by = st => list.filter(([, x]) => x.state === st);
+    const toAsk = Object.keys(c.links.stylists || {}).filter(pid => !(d.people || {})[pid]).map(pid => [pid, null])
+      .sort((a, b) => (SPEED[(crewById(a[0]) || {}).response_time] ?? 3) - (SPEED[(crewById(b[0]) || {}).response_time] ?? 3) || String((crewById(a[0]) || {}).name || '').localeCompare(String((crewById(b[0]) || {}).name || '')));
+    const need = Number(d.count) || 1, booked = by('booked'), yes = by('yes');
+    const pill = {
+      unpaid: '<span class="pill slow">Not paid</span>',
+      posted: yes.length ? '<span class="pill ok">' + yes.length + ' said yes</span>' : '<span class="pill mid">Needs stylists</span>',
+      matched: '<span class="pill new">Matched</span>',
+      done: '<span class="pill pass">Done</span>',
+      cancelled: '<span class="pill pass">Cancelled</span>',
+      refunded: '<span class="pill pass">Refunded</span>',
+    }[d.status] || '<span class="pill pass">' + esc(d.status) + '</span>';
+    const title = d.city + ' · ' + dayLabel(d.date) + ' · ' + timeLabel(d.time);
+    const C = ' data-cj="' + esc(c.id) + '"';
+    const cnum = String(cl.phone || '').replace(/^\+/, '');
+    const bookedNames = listJoin(booked.map(([pid, x]) => first((crewById(pid) || {}).name || x.name)));
+    const clientMsg = d.status === 'matched' && booked.length ? cjText.clientMatched(d, bookedNames, c.links.client) : cjText.clientPosted(d, c.links.client);
+    const meta = [
+      'Client: ' + (cl.name || '') + (cl.phone ? ' · ' + cjPhone(cl.phone) : '') + (cl.email ? ' · ' + cl.email : ''),
+      d.pay && d.pay.paid_at ? 'Booking fee ' + cjMoney((d.pay.paid_cents || d.fee_cents || 0) / 100) + ' paid ' + fmtTimeStamp(d.pay.paid_at) + (d.pay.order_number ? ' · Wix order #' + d.pay.order_number : '') : 'Booking fee not paid',
+      'Job ' + c.id,
+    ];
+    const group = (label, rows) => rows.length ? '<div class="grp"><p class="label">' + label + '</p>' + rows.map(([pid, x]) => cjRow(c, pid, x)).join('') + '</div>' : '';
+    const live = CJ_LIVE.includes(d.status);
+    const noOne = live && !list.length && !toAsk.length ? '<div class="draftnote"><span>No approved full-job stylists take clients in ' + esc(d.city) + ' yet.</span></div>' : '';
+    const clientBar = live && c.links.client ? '<div class="draftnote"><span>' + (d.status === 'matched' ? 'Matched. Tell the client, so they add the exact address.' : 'Text each stylist their own link. Whoever taps “I’m available” shows up here.') + '</span><div class="acts">' +
+      (cnum ? '<a class="btn small' + (d.status === 'matched' ? ' solid' : '') + '" href="' + esc(smsHref(cnum, clientMsg)) + '">Text client</a>' : '') +
+      '<button class="btn small" type="button" data-cact="copyclient"' + C + ' data-link="' + esc(c.links.client) + '">Copy client link</button></div></div>' : '';
+    const foot = live
+      ? '<div class="jfoot">' + (d.status === 'matched' ? '<button class="btn small" type="button" data-cact="done"' + C + '>Mark done</button>' : '') + '<button class="btn small danger" type="button" data-cact="cancel"' + C + '>Cancel job</button></div>'
+      : d.status === 'cancelled' ? '<div class="jfoot"><span class="meta">Refund the booking fee from the order in Wix, if it’s owed.</span><button class="btn small" type="button" data-cact="reopen"' + C + '>Reopen</button></div>' : '';
+    return '<article class="job' + (cjNeedsYou(c) ? ' hot' : '') + '">' +
+      '<div class="jhead"><div><h3 class="jtitle">' + esc(title) + (d.test ? ' <span class="u10 pill ex">Test</span>' : '') + '</h3>' +
+      '<p class="jsub">' + esc(d.kind + ' · ' + (d.hair || []).join(', ') + ' · ' + need + (need === 1 ? ' stylist' : ' stylists') + ' · ' + cjMoney(d.budget) + (need > 1 ? ' each' : '')) + '</p></div>' + pill + '</div>' +
+      '<p class="jdetails">' + esc(d.hood + ', ' + d.city) + (d.note ? '. Note: ' + esc(d.note) : '') + (d.address && d.address.text ? '<br>Address: ' + esc(d.address.text) : '') + '</p>' +
+      noOne + clientBar +
+      '<div class="jmeta">' + meta.map(m => '<span>' + esc(m) + '</span>').join('') + '</div>' +
+      group('Booked', booked) + group('Said yes. Call them, then book', yes) + group('Asked', by('asked')) +
+      (live ? group('Can be asked', toAsk) : '') + group('Not picked', by('not_picked')) + group('Not this time', by('no')) +
+      foot + '</article>';
+  }
+
+  function renderClients(){
+    const live = clients.filter(c => CJ_LIVE.includes(c.data.status)).sort((a, b) => String(a.data.date + a.data.time).localeCompare(String(b.data.date + b.data.time)));
+    const unpaid = clients.filter(c => c.data.status === 'unpaid');
+    const rest = clients.filter(c => !CJ_LIVE.includes(c.data.status) && c.data.status !== 'unpaid');
+    $('clientsList').innerHTML = !gotClients ? '<div class="empty"><b>Loading client jobs…</b></div>'
+      : live.length ? live.map(cjCard).join('')
+      : '<div class="empty"><b>No client jobs right now</b>When a client posts a job and pays the booking fee on bookhbs.com, it shows up here.</div>';
+    $('clientsPastWrap').hidden = !rest.length;
+    $('clientsPastSummary').textContent = 'Done and cancelled (' + rest.length + ')';
+    $('clientsPastList').innerHTML = rest.map(cjCard).join('');
+    $('clientsUnpaidWrap').hidden = !unpaid.length;
+    $('clientsUnpaidSummary').textContent = 'Posted but not paid (' + unpaid.length + ')';
+    $('clientsUnpaidList').innerHTML = unpaid.map(cjCard).join('');
+  }
+
+  async function clientDo(body, okMsg){
+    try { await team.client(body); if (okMsg) toast(okMsg); return true; }
+    catch(e){
+      const why = e && e.data && e.data.why;
+      if (why === 'closed') toast('That job is closed, so that didn’t change.');
+      else if (e && e.code === 'invalid') toast('That couldn’t be saved.');
+      else writeFail(e);
+      return false;
+    }
+  }
+
+  function onClientClick(e){
+    const a = e.target.closest('[data-cact]'); if (!a) return;
+    const id = a.dataset.cj, pid = a.dataset.pid, act = a.dataset.cact;
+    if (act === 'copy' || act === 'copyclient') { e.preventDefault(); return copy(a.dataset.link, 'Link copied.'); }
+    if (act === 'ask') { clientDo({ op: 'ask', id, pid }); return; } // the link opens Messages; this saves who was asked
+    e.preventDefault();
+    if (act === 'state') {
+      const st = a.dataset.state;
+      return clientDo({ op: 'state', id, pid, state: st }, st === 'booked' ? 'Booked. Text them, and the client.' : '');
+    }
+    if (act === 'cancel' || act === 'done' || act === 'reopen') {
+      if (act === 'cancel' && !a.dataset.armed) { a.dataset.armed = '1'; const t = a.textContent; a.textContent = 'Tap again to confirm'; setTimeout(() => { if (a.isConnected) { delete a.dataset.armed; a.textContent = t; } }, 3000); return; }
+      return clientDo({ op: act, id }, act === 'cancel' ? 'Job cancelled. Refund the fee in Wix if it’s owed.' : act === 'done' ? 'Marked done' : 'Reopened');
+    }
+  }
+  ['clientsList', 'clientsPastList', 'clientsUnpaidList'].forEach(id => $(id).addEventListener('click', onClientClick));
 
   /* ---------- "let people know" sheet ---------- */
   const nameOf = r => r.x.name || r.p.name || '';
@@ -1077,6 +1227,7 @@
     crewCol.onSnapshot(snap => { people = snap.docs.map(d => Object.assign({ id: d.id }, d.data())); gotPeople = true; done(snap); render(); startWix(); }, fail);
     jobsCol.onSnapshot(snap => { jobs = snap.docs.map(d => Object.assign({ id: d.id }, d.data())); gotJobs = true; done(snap); render(); startWix(); }, fail);
     team.onInbox(items => takeInbox(items));
+    if (team.onClients) team.onClients(list => { clients = list; gotClients = true; renderClientBadge(); if (view === 'clients') renderClients(); });
     mcp = { server: true };
     startWix();
   })();

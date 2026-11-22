@@ -16,11 +16,14 @@ import { randomBytes, createHash, createHmac, hkdfSync, timingSafeEqual } from '
 import { allowedEmails, googleConfig, teamHost, teamOrigin, redirectUri, SESSION_DAYS } from '../lib/team/config.mjs';
 import { authUrl, exchangeCode, verifyIdToken, safeEqual } from '../lib/team/google.mjs';
 import {
-  WixError, wixReady, listRecords, writeRecord, removeRecord,
+  WixError, wixReady, listRecords, getRecord, writeRecord, removeRecord,
   insertSession, findSession, deleteSession, deleteExpiredSessions, logActivity,
 } from '../lib/team/wix.mjs';
 import { contactsOp } from '../lib/team/contacts.mjs';
 import { Invalid, ID_RE, cleanDoc, deepMerge, checkSize } from '../lib/team/validate.mjs';
+import { listJobs, updateJob } from '../lib/book/store.mjs';
+import { clientLink, stylistLink, linksReady } from '../lib/book/links.mjs';
+import { teamChange, FlowError, JOB_ID_RE, PID_RE } from '../lib/book/flow.mjs';
 
 const SESSION_COOKIE = '__Host-hbs_s';
 const LOGIN_COOKIE = '__Host-hbs_login';
@@ -179,10 +182,14 @@ async function finishLogin(req, url, context) {
 const COLS = new Set(['crew', 'jobs']);
 
 async function loadAll() {
-  const [crew, jobs, inbox] = await Promise.all([listRecords('crew'), listRecords('jobs'), listRecords('inbox')]);
+  const [crew, jobs, inbox, clients] = await Promise.all([
+    listRecords('crew'), listRecords('jobs'), listRecords('inbox'),
+    listJobs().catch((e) => { console.error('team: client jobs did not load', e && (e.code || e.message)); return null; }),
+  ]);
   return {
     crew: crew.map((r) => ({ id: r.id, data: r.doc })),
     jobs: jobs.map((r) => ({ id: r.id, data: r.doc })),
+    clients: clients === null ? null : clients.map((c) => clientOut(c, crew)),
     inbox: inbox.map((item) => {
       let fields = {};
       try { fields = JSON.parse((item.data || {}).json || '{}'); } catch { fields = {}; }
@@ -213,6 +220,63 @@ async function write(body, user, context) {
     return;
   }
   throw new Invalid('bad request');
+}
+
+/* ---------------- HBS client jobs (bookhbs.com) ---------------- */
+
+// Who can take a client job: approved crew who do full jobs and take clients in the job's city.
+// The same city rules as the team app's own list (site/team/app.js: cityKey, placeMain, worksIn).
+const cityKey = (c) => String(c || '').trim().toLowerCase().replace(/\s+/g, ' ')
+  .replace(/^nyc$|^new york city$|^brooklyn$|^manhattan$/, 'new york').replace(/^la$/, 'los angeles');
+const placeMain = (c) => cityKey(c).split(',')[0].trim();
+const worksIn = (p, c) => String((p && p.city) || '').split(';').map((x) => x.trim()).filter(Boolean).some((l) => placeMain(l) === placeMain(c));
+const doesFullJobs = (p) => /full|both/i.test(String((p && p.role) || ''));
+
+// A client job as the team app gets it: the whole job, the client's link, and a link for each
+// stylist who can be asked (or already was).
+function clientOut(job, crew) {
+  const doc = job.doc;
+  const pids = new Set(Object.keys(doc.people || {}));
+  if (doc.status === 'posted' || doc.status === 'matched') {
+    for (const c of crew) {
+      if (c.doc && c.doc.status === 'approved' && doesFullJobs(c.doc) && worksIn(c.doc, doc.city)) pids.add(c.id);
+    }
+  }
+  const links = { client: '', stylists: {} };
+  if (linksReady() && doc.status !== 'unpaid') {
+    links.client = clientLink(doc, job.id);
+    for (const pid of pids) if (PID_RE.test(pid)) links.stylists[pid] = stylistLink(doc, job.id, pid);
+  }
+  return { id: job.id, data: doc, links };
+}
+
+const CLIENT_OPS = new Set(['ask', 'state', 'cancel', 'reopen', 'done']);
+
+async function clientChange(body, user, context) {
+  const { op, id, pid, state } = body || {};
+  if (typeof id !== 'string' || !JOB_ID_RE.test(id)) throw new Invalid('bad id');
+  if (!CLIENT_OPS.has(op)) throw new Invalid('bad request');
+  if ((op === 'ask' || op === 'state') && (typeof pid !== 'string' || !PID_RE.test(pid))) throw new Invalid('bad person');
+  let person = null;
+  if (op === 'ask') {
+    const rec = await getRecord('crew', pid);
+    if (!rec || !rec.doc) throw new Invalid('not on the crew');
+    person = { name: rec.doc.name };
+  }
+  let refused = null;
+  const saved = await updateJob(id, (cur) => {
+    try {
+      const next = teamChange(cur, op, { pid, state, person }, new Date().toISOString(), user.email);
+      return next === cur ? null : next;
+    } catch (e) {
+      if (e instanceof FlowError) { refused = e.code; return null; }
+      throw e;
+    }
+  }, user.email);
+  if (!saved) { const e = new Error('not_found'); e.code = 'not_found'; throw e; }
+  if (refused) throw new Invalid(refused);
+  later(context, logActivity(user.email, 'client job: ' + op + (op === 'state' ? ' ' + state : ''), 'client/' + id, person ? person.name : ''));
+  return { id, data: saved.doc };
 }
 
 /* ---------------- router ---------------- */
@@ -252,6 +316,7 @@ export default async (req, context) => {
     if (route === 'data' && method === 'GET') return json(200, await loadAll());
     if (route === 'write' && method === 'POST') { await write(await readJson(req), user, context); return json(200, { ok: true }); }
     if (route === 'wix' && method === 'POST') return json(200, { ok: true, result: await contactsOp(await readJson(req)) });
+    if (route === 'client' && method === 'POST') return json(200, { ok: true, job: await clientChange(await readJson(req), user, context) });
     if (route === 'logout' && method === 'POST') {
       sessionCache.delete(user.sessionId);
       await deleteSession(user.sessionId);
