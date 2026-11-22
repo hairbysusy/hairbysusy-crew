@@ -1,6 +1,11 @@
 // HBS client jobs (bookhbs.com): the rules a posted job must meet, and the booking fee.
 // The posting page (site/book/post.js) shows the same choices; this file is what the server enforces.
 
+// Client posting on bookhbs.com opens on Susy's word. Until then bookhbs.com shows the HBS pages but
+// takes no jobs; the test link still does. To open: set this to true, set LIVE_OPEN in
+// site/book/common.js to true, and remove the two "/book/post" lines for bookhbs.com in _redirects.
+export const LIVE_OPEN = false;
+
 // Cities where clients can post. Only open cities take jobs and booking fees.
 // To open a city, set open: true here and in site/book/post.js (CITIES).
 export const CITIES = {

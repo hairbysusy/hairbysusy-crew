@@ -271,7 +271,9 @@
     const body = new URLSearchParams(new FormData(form)).toString();
     try {
       if (LIVE) {
-        const r = await fetch('/', { method:'POST', headers:{ 'Content-Type':'application/x-www-form-urlencoded' }, body });
+        // Sent to the form's own page, /apply/: Netlify Forms only takes an application at an address
+        // no redirect rule touches, and on bookhbs.com the address '/' is the HBS home page.
+        const r = await fetch('/apply/', { method:'POST', headers:{ 'Content-Type':'application/x-www-form-urlencoded' }, body });
         if (!r.ok) throw new Error(r.status);
       } else {
         await new Promise(r => setTimeout(r, 700));

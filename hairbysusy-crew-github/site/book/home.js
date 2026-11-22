@@ -1,6 +1,13 @@
 'use strict';
 
 (() => {
+  // The page starts as "Booking opens soon" (bookhbs.com until posting opens). Where clients can
+  // post (test links, or bookhbs.com once open), it shows the Post a job buttons instead.
+  if (window.HBS.open) {
+    for (const id of ['menuPost', 'heroPost', 'againOpen', 'againPost']) document.getElementById(id).hidden = false;
+    for (const id of ['heroSoon', 'againSoon']) document.getElementById(id).hidden = true;
+  }
+
   const btn = document.getElementById('menuBtn');
   const menu = document.getElementById('menu');
   const close = (focusBtn) => {
@@ -12,7 +19,7 @@
     const opening = menu.hidden;
     menu.hidden = !opening;
     btn.setAttribute('aria-expanded', String(opening));
-    if (opening) menu.querySelector('a').focus();
+    if (opening) menu.querySelector('a:not([hidden])').focus();
   });
   document.addEventListener('click', (e) => {
     if (!menu.hidden && !menu.contains(e.target) && !btn.contains(e.target)) close(false);

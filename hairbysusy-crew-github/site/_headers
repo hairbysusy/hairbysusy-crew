@@ -9,11 +9,18 @@
   Cross-Origin-Opener-Policy: same-origin
   Strict-Transport-Security: max-age=31536000
 
-# The public sign-up pages (crew.hairbysusy.com)
+# The public sign-up pages (crew.hairbysusy.com, and the stylist form at /apply/). On bookhbs.com,
+# "/" is the HBS home page, which uses this same policy.
 /
   Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; upgrade-insecure-requests
   Referrer-Policy: strict-origin-when-cross-origin
 /index.html
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; upgrade-insecure-requests
+  Referrer-Policy: strict-origin-when-cross-origin
+/apply
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; upgrade-insecure-requests
+  Referrer-Policy: strict-origin-when-cross-origin
+/apply/*
   Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; upgrade-insecure-requests
   Referrer-Policy: strict-origin-when-cross-origin
 /privacy

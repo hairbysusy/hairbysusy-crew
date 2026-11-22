@@ -8,6 +8,11 @@
   const flag = document.getElementById('testflag');
   if (flag && test) flag.hidden = false;
 
+  // Client posting on bookhbs.com opens on Susy's word; test links can always post.
+  // Keep in step with LIVE_OPEN in netlify/lib/book/rules.mjs, which the server enforces.
+  const LIVE_OPEN = false;
+  const open = test || LIVE_OPEN;
+
   const ID_RE = /^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{10}$/;
   const KEY_RE = /^[A-Za-z0-9_-]{24}$/;
   const CHECKOUT_HOSTS = ['www.hairbysusy.com', 'hairbysusy.com', 'www.wix.com'];
@@ -30,6 +35,7 @@
 
   window.HBS = {
     test,
+    open,
     ID_RE,
     KEY_RE,
     api,

@@ -105,6 +105,10 @@ input, textarea { font: inherit; }
 .lede { margin: 28px 0 0; max-width: 320px; font-size: 17px; line-height: 1.5; color: var(--muted); }
 .hero .cta { margin-top: 40px; }
 .yourjob { margin: 16px 0 0; }
+/* Before client posting opens on bookhbs.com: when it opens, and the way in for stylists */
+.soon { margin-top: 40px; display: flex; flex-direction: column; gap: 24px; }
+.soon p { margin: 0; font-size: 20px; line-height: 1.4; font-weight: 500; letter-spacing: -.01em; }
+.hero .soon .cta { margin-top: 0; }
 
 .adire { padding: 0 28px; }
 .adire svg { display: block; width: 100%; height: 10px; }

@@ -20,10 +20,11 @@
 // Netlify keeps out of deploy previews of this public repository) and deploy previews or branch
 // deploys. Jobs from test links are marked test and accept a budget from $5, so a real payment can
 // be tried for $1.50 and refunded. crew.hairbysusy.com and team.hairbysusy.com never answer.
+// bookhbs.com takes no new jobs until posting opens (LIVE_OPEN in lib/book/rules.mjs).
 
 import crypto from 'node:crypto';
 import { wixReady, logActivity } from '../lib/team/wix.mjs';
-import { readJob } from '../lib/book/rules.mjs';
+import { readJob, LIVE_OPEN } from '../lib/book/rules.mjs';
 import { insertJob, getJob, updateJob, countSince } from '../lib/book/store.mjs';
 import { createCheckout, findPayment, PayError } from '../lib/book/pay.mjs';
 import { clientKey, stylistKey, linksReady, sameText } from '../lib/book/links.mjs';
@@ -141,6 +142,7 @@ async function openCheckout(site, id, key) {
 }
 
 async function postJob(req, site, context) {
+  if (!site.test && !LIVE_OPEN) return json(403, { error: 'closed' }); // bookhbs.com: posting not open yet
   const body = await readBody(req);
   if (!body) return json(400, { error: 'form' });
   if (typeof body.website === 'string' && body.website.trim()) return json(400, { error: 'form' }); // filled by bots only

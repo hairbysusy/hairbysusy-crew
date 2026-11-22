@@ -6,6 +6,9 @@
 (() => {
   const H = window.HBS;
 
+  // bookhbs.com before posting opens: back to the home page (the server takes no jobs there either).
+  if (!H.open) { location.replace('/book/'); return; }
+
   // Same lists as netlify/lib/book/rules.mjs. Only open cities take jobs.
   const CITIES = [
     { name: 'New York', tz: 'America/New_York', short: 'NY', open: true },
@@ -454,7 +457,7 @@
     }
     const msg = {
       429: d.error === 'busy' ? "We're getting a lot of jobs right now. Try again in a few minutes." : 'You posted several jobs in the last hour. Try again later, or email info@hairbysusy.com.',
-      403: 'This page is out of date. Refresh it and try again.',
+      403: d.error === 'closed' ? 'Booking opens soon in New York. Nothing was charged.' : 'This page is out of date. Refresh it and try again.',
       404: "Posting isn't open on this address yet.",
       503: "Posting isn't open yet. Try again soon.",
       0: 'No connection. Check your internet and try again.',

@@ -1,14 +1,17 @@
-# crew.hairbysusy.com and team.hairbysusy.com
+# bookhbs.com, crew.hairbysusy.com and team.hairbysusy.com
 
-Two things live in this repository, both hosted on Netlify, which deploys it automatically:
+These live in this repository, all on one Netlify project, which deploys it automatically:
 
-1. **crew.hairbysusy.com**: the public On-Call Team sign-up.
-2. **team.hairbysusy.com**: Susy's Crew, the private team app. Only the Google accounts listed in `ALLOWED_EMAILS` can sign in.
-3. **HBS client pages (`/book/`)**: "Need a stylist fast?" for bookhbs.com, where clients post a job and pay the booking fee. Being tested at https://hairbysusy-crew.netlify.app/book/ (marked as a test link, hidden from search). They never open on the crew or team sites, and bookhbs.com doesn't point here yet. Deploy previews show the pages too, but can't post: Netlify keeps the Wix key out of deploy previews of this public repository, which is the safe setting.
+1. **bookhbs.com**: HBS on one site. The home page is "Need a stylist fast?" (the `/book/` pages), where clients post a job and pay the booking fee, and stylists apply at **bookhbs.com/apply**. Client posting opens on Susy's word: until then bookhbs.com says booking opens soon and takes no jobs (see "Opening client posting" below).
+2. **crew.hairbysusy.com**: the On-Call Team sign-up, the same form as bookhbs.com/apply.
+3. **team.hairbysusy.com**: Susy's Crew, the private team app. Only the Google accounts listed in `ALLOWED_EMAILS` can sign in. It stays on its own address, apart from the public site.
+
+The test link for the client pages is https://hairbysusy-crew.netlify.app/book/ (marked as a test link, hidden from search): it can always post, as a test. The client pages never open on the crew or team sites. Deploy previews show the pages too, but can't post: Netlify keeps the Wix key out of deploy previews of this public repository, which is the safe setting.
 
 ## Files
 
-- `site/`: the sign-up page and privacy terms, plus `_headers` (security rules) and `_redirects`
+- `site/`: the sign-up page and privacy terms, plus `_headers` (security rules) and `_redirects` (which address shows what)
+- `site/apply/`: the sign-up page at /apply/ (bookhbs.com/apply). It is the same file as `site/index.html`; edit both. The form sends applications to /apply/, so no rule in `_redirects` may ever match /apply/ (a rule there would swallow them).
 - `site/team/`: the team app's page (no data in it; it loads everything after sign-in)
 - `netlify/functions/submission-created.mjs`: runs on every new application
 - `netlify/functions/team-api.mjs`: the team app's server at `/api/team/*`
@@ -70,5 +73,11 @@ Before it can take payments, the Wix key needs two more permissions: generating 
 
 Private links are signed, not stored (`links.mjs`): each one is an HMAC of the job (and stylist) under a key derived from `GOOGLE_CLIENT_SECRET`, so the team app can rebuild any link and nothing in Wix can be turned into one.
 
-To open another city, set `open: true` for it in `netlify/lib/book/rules.mjs` and in `site/book/post.js`. Before bookhbs.com points here: add bookhbs.com to the Netlify project, let search engines see the home page (its `noindex` tag and the `/book` rules in `_headers`; the job pages stay `noindex`), and publish the full terms and privacy policy.
+To open another city, set `open: true` for it in `netlify/lib/book/rules.mjs` and in `site/book/post.js`.
+
+## bookhbs.com
+
+`_redirects` does the routing: bookhbs.com/ shows the HBS home page (`/book/`), www.bookhbs.com goes to bookhbs.com, /crew and /join go to /apply/, /team goes to team.hairbysusy.com, and /city links go to crew.hairbysusy.com (where that page's server answers).
+
+**Opening client posting** (on Susy's word): set `LIVE_OPEN` to `true` in `netlify/lib/book/rules.mjs` and in `site/book/common.js`, remove the two `bookhbs.com/book/post` lines in `_redirects`, and show the Post a job buttons without waiting for the script (in `site/book/index.html`, take `hidden` off `menuPost`, `heroPost`, `againOpen` and `againPost`, and put it on `heroSoon` and `againSoon`). At launch, also let search engines see the home page (its `noindex` tag; the job pages stay `noindex`) and publish the full terms and privacy policy.
 

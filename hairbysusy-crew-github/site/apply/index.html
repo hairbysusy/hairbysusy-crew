@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HairBySusy On-Call Team</title>
+<meta name="description" content="Apply to join the HairBySusy on-call team. Assistants and stylists who can take jobs on short notice.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wdth,wght@62..125,300..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/crew.css">
+</head>
+<body>
+<div class="bg" aria-hidden="true"><picture><source media="(min-width: 900px)" srcset="/img/hero-wide.jpg"><img src="/img/hero.jpg" alt=""></picture></div>
+<div class="mast" aria-hidden="true"><span>HairBySusy</span><span>Worldwide</span></div>
+<div class="glow" aria-hidden="true"><i></i><div class="soft"><i></i></div></div>
+
+<form class="app" id="form" name="crew" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>
+  <input type="hidden" name="form-name" value="crew">
+  <p class="hp"><label for="bot-field">Leave this empty</label><input id="bot-field" name="bot-field" tabindex="-1" autocomplete="off"></p>
+
+  <!-- values set by chips and switches -->
+  <input type="hidden" name="locations" id="h-locations">
+  <input type="hidden" name="role" id="h-role">
+  <input type="hidden" id="h-license_status">
+  <input type="hidden" name="licensed" id="h-licensed">
+  <input type="hidden" name="specialties" id="h-specialties">
+  <input type="hidden" name="response_time" id="h-response_time">
+
+  <div class="top hidden" id="top">
+    <button type="button" class="back" id="back" aria-label="Back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="track" aria-hidden="true"><div class="bar" id="bar"></div></div>
+    <div class="count" id="count" aria-live="polite"></div>
+  </div>
+
+  <main class="stage" id="stage">
+
+    <!-- 0 welcome -->
+    <section class="step on" data-step="welcome" aria-labelledby="t0">
+      <h1 class="wordmark" id="t0"><span class="sr">HairBySusy On-Call Team. </span><span class="w">Work</span> <span class="w">with</span> <span class="w">Susy</span></h1>
+      <p class="tagline"><span>The On-Call Team</span><span>Assistants and stylists</span></p>
+      <p class="lede">Susy books jobs worldwide. When a job comes in, her team contacts approved assistants and stylists in that location first. Most jobs come with 24 hours' notice or less. Apply if you can move on short notice.</p>
+      <ul class="facts">
+        <li><span>Locations</span><span>Worldwide</span></li>
+        <li><span>Who it's for</span><span>Assistants and stylists</span></li>
+        <li><span>How jobs arrive</span><span>By email or text</span></li>
+        <li><span>Time to apply</span><span>About 1 minute</span></li>
+      </ul>
+    </section>
+
+    <!-- 1 name -->
+    <section class="step" data-step="name" aria-labelledby="t1">
+      <h1 id="t1">What's your full name?</h1>
+      <p class="hint">As you'd like Susy to see it.</p>
+      <div class="field">
+        <label for="name">Full name</label>
+        <input class="input" id="name" name="name" maxlength="80" autocomplete="name" placeholder="First and last name" required>
+        <div class="err" id="err-name"></div>
+      </div>
+    </section>
+
+    <!-- 2 contact -->
+    <section class="step" data-step="contact" aria-labelledby="t2">
+      <h1 id="t2">How should Susy reach you?</h1>
+      <p class="hint">Job offers come by email or text, so use the ones you check most.</p>
+      <div class="fields">
+        <div class="field">
+          <label for="phone">Mobile number</label>
+          <input class="input" id="phone" name="phone" maxlength="30" type="tel" inputmode="tel" autocomplete="tel" placeholder="(212) 555-0148" required>
+          <p class="fieldhint">Outside the US? Start with + and your country code, like +44 or +234.</p>
+          <div class="err" id="err-phone"></div>
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input class="input" id="email" name="email" maxlength="120" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="you@email.com" required>
+          <div class="err" id="err-email"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 work -->
+    <section class="step" data-step="work" aria-labelledby="t3">
+      <h1 id="t3">Show Susy your work.</h1>
+      <p class="hint">Susy looks at your work before approving anyone. Make sure your account is public.</p>
+      <div class="fields">
+        <div class="field">
+          <label for="instagram">Instagram</label>
+          <input class="input" id="instagram" name="instagram" maxlength="60" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="@yourhandle" required>
+          <div class="linkcheck" id="lc-instagram" aria-live="polite"></div>
+          <div class="err" id="err-instagram"></div>
+        </div>
+        <div class="field">
+          <label for="portfolio">Portfolio link <span class="opt">optional</span></label>
+          <input class="input" id="portfolio" name="portfolio" maxlength="200" type="url" inputmode="url" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="yoursite.com">
+          <p class="fieldhint">Your website, TikTok, or a shared Google Drive or Dropbox folder of your best work.</p>
+          <div class="linkcheck" id="lc-portfolio" aria-live="polite"></div>
+          <div class="err" id="err-portfolio"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 locations -->
+    <section class="step" data-step="locations" aria-labelledby="t4">
+      <h1 id="t4">Where do you take clients?</h1>
+      <p class="hint">Choose the city where you take clients now, without the client paying for your transportation. We know you'd like to work in other places too, but you'll get more bookings this way.</p>
+      <div class="locs">
+        <p class="region" id="r-us">United States</p>
+        <div class="chips" data-field="locations" data-multi role="group" aria-labelledby="r-us">
+          <button type="button" class="chip" data-value="New York"><span class="tick">✓</span>New York</button>
+          <button type="button" class="chip" data-value="Los Angeles"><span class="tick">✓</span>Los Angeles</button>
+          <button type="button" class="chip" data-value="Atlanta"><span class="tick">✓</span>Atlanta</button>
+          <button type="button" class="chip" data-value="Miami"><span class="tick">✓</span>Miami</button>
+          <button type="button" class="chip" data-value="Houston"><span class="tick">✓</span>Houston</button>
+          <button type="button" class="chip" data-value="Chicago"><span class="tick">✓</span>Chicago</button>
+          <button type="button" class="chip" data-value="Washington DC"><span class="tick">✓</span>Washington DC</button>
+          <button type="button" class="chip" data-value="Las Vegas"><span class="tick">✓</span>Las Vegas</button>
+        </div>
+        <p class="region" id="r-eu">Canada and Europe</p>
+        <div class="chips" data-field="locations" data-multi role="group" aria-labelledby="r-eu">
+          <button type="button" class="chip" data-value="Toronto"><span class="tick">✓</span>Toronto</button>
+          <button type="button" class="chip" data-value="London"><span class="tick">✓</span>London</button>
+          <button type="button" class="chip" data-value="Paris"><span class="tick">✓</span>Paris</button>
+        </div>
+        <p class="region" id="r-af">Africa and the Middle East</p>
+        <div class="chips" data-field="locations" data-multi role="group" aria-labelledby="r-af">
+          <button type="button" class="chip" data-value="Lagos"><span class="tick">✓</span>Lagos</button>
+          <button type="button" class="chip" data-value="Abuja"><span class="tick">✓</span>Abuja</button>
+          <button type="button" class="chip" data-value="Accra"><span class="tick">✓</span>Accra</button>
+          <button type="button" class="chip" data-value="Johannesburg"><span class="tick">✓</span>Johannesburg</button>
+          <button type="button" class="chip" data-value="Dubai"><span class="tick">✓</span>Dubai</button>
+        </div>
+        <label class="region" for="otherLoc">Somewhere else?</label>
+        <div class="addrow">
+          <input class="input" id="otherLoc" maxlength="40" autocomplete="off" placeholder="City, country" data-nofocus>
+          <button type="button" class="addbtn" id="addLoc">Add</button>
+        </div>
+        <div class="chips custom" id="customLocs" aria-live="polite"></div>
+        <div class="err" id="err-locations"></div>
+      </div>
+    </section>
+
+    <!-- 5 role -->
+    <section class="step" data-step="role" aria-labelledby="t5">
+      <h1 id="t5">How do you want to work with Susy?</h1>
+      <p class="hint">Pick one.</p>
+      <div class="cards" data-field="role" data-advance role="group" aria-labelledby="t5">
+        <button type="button" class="card" data-value="Assist"><b>Assist</b><span>Work beside Susy on set, in the salon or on tour.</span><i class="radio"></i></button>
+        <button type="button" class="card" data-value="Full jobs"><b>Take full jobs</b><span>Handle a client start to finish when Susy hands off a booking.</span><i class="radio"></i></button>
+        <button type="button" class="card" data-value="Both"><b>Both</b><span>Assist or take full jobs, depending on the booking.</span><i class="radio"></i></button>
+      </div>
+      <div class="err" id="err-role"></div>
+    </section>
+
+    <!-- 5b license -->
+    <section class="step" data-step="license" aria-labelledby="t5b">
+      <h1 id="t5b">Are you licensed?</h1>
+      <p class="hint">A cosmetology, barber or nail license.</p>
+      <div class="cards" data-field="license_status" role="group" aria-labelledby="t5b">
+        <button type="button" class="card" data-value="Licensed"><b>Yes, I'm licensed</b><span>I hold a current license.</span><i class="radio"></i></button>
+        <button type="button" class="card" data-value="In training"><b>In training</b><span>I'm in beauty school or an apprenticeship.</span><i class="radio"></i></button>
+        <button type="button" class="card" data-value="Not licensed"><b>Not licensed</b><span>I don't hold a license.</span><i class="radio"></i></button>
+      </div>
+      <div class="err" id="err-license_status"></div>
+      <div class="field license-where">
+        <label for="licenseWhere">Where is your license from? <span class="opt">optional</span></label>
+        <input class="input" id="licenseWhere" maxlength="60" autocomplete="off" placeholder="New York, California, UK" data-nofocus>
+      </div>
+    </section>
+
+    <!-- 6 specialties -->
+    <section class="step" data-step="specialties" aria-labelledby="t6">
+      <h1 id="t6">What do you do best?</h1>
+      <p class="hint">Choose all that apply.</p>
+      <div class="chips" data-field="specialties" data-multi role="group" aria-labelledby="t6">
+        <button type="button" class="chip" data-value="Knotless braids"><span class="tick">✓</span>Knotless braids</button>
+        <button type="button" class="chip" data-value="Boho braids"><span class="tick">✓</span>Boho braids</button>
+        <button type="button" class="chip" data-value="Cornrows & feed-ins"><span class="tick">✓</span>Cornrows &amp; feed-ins</button>
+        <button type="button" class="chip" data-value="Twists"><span class="tick">✓</span>Twists</button>
+        <button type="button" class="chip" data-value="Locs"><span class="tick">✓</span>Locs</button>
+        <button type="button" class="chip" data-value="Silk press"><span class="tick">✓</span>Silk press</button>
+        <button type="button" class="chip" data-value="Wig installs"><span class="tick">✓</span>Wig installs</button>
+        <button type="button" class="chip" data-value="Frontals & closures"><span class="tick">✓</span>Frontals &amp; closures</button>
+        <button type="button" class="chip" data-value="Ponytails & updos"><span class="tick">✓</span>Ponytails &amp; updos</button>
+        <button type="button" class="chip" data-value="Natural hair"><span class="tick">✓</span>Natural hair</button>
+        <button type="button" class="chip" data-value="Cut & color"><span class="tick">✓</span>Cut &amp; color</button>
+        <button type="button" class="chip" data-value="Barber"><span class="tick">✓</span>Barber</button>
+        <button type="button" class="chip" data-value="Bridal"><span class="tick">✓</span>Bridal</button>
+        <button type="button" class="chip" data-value="Editorial & on set"><span class="tick">✓</span>Editorial &amp; on set</button>
+        <button type="button" class="chip" data-value="Hair art"><span class="tick">✓</span>Hair art</button>
+        <button type="button" class="chip" data-value="Kids"><span class="tick">✓</span>Kids</button>
+        <button type="button" class="chip" data-value="Nails"><span class="tick">✓</span>Nails</button>
+      </div>
+      <div class="err" id="err-specialties"></div>
+    </section>
+
+    <!-- 8 response time -->
+    <section class="step" data-step="response" aria-labelledby="t8">
+      <h1 id="t8">A job comes up for tomorrow. How fast can you confirm?</h1>
+      <p class="hint">Be honest. Susy contacts the fastest people first.</p>
+      <div class="cards" data-field="response_time" data-advance role="group" aria-labelledby="t8">
+        <button type="button" class="card" data-value="Within the hour"><b>Within the hour</b><span>I answer right away.</span><i class="radio"></i></button>
+        <button type="button" class="card" data-value="Same day"><b>Same day</b><span>I'll confirm within a few hours.</span><i class="radio"></i></button>
+        <button type="button" class="card" data-value="Within 24 hours"><b>Within 24 hours</b><span>I need a day to check my schedule.</span><i class="radio"></i></button>
+      </div>
+      <div class="err" id="err-response_time"></div>
+    </section>
+
+    <!-- 9 rate -->
+    <section class="step" data-step="rate" aria-labelledby="t9">
+      <h1 id="t9">What's your usual day rate?</h1>
+      <p class="hint">Include your currency. Susy sets the pay for each job, so this is a guide.</p>
+      <div class="field">
+        <label for="rate">Usual day rate <span class="opt">optional</span></label>
+        <input class="input" id="rate" name="rate" maxlength="60" autocomplete="off" placeholder="$400 a day">
+        <div class="err" id="err-rate"></div>
+      </div>
+      <label class="consent" for="rateOpen">
+        <input type="checkbox" id="rateOpen" name="rate_open" value="Yes">
+        <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#0C0C11" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+        <span>Open to discuss, depending on the job</span>
+      </label>
+    </section>
+
+    <!-- 10 review -->
+    <section class="step" data-step="review" aria-labelledby="t10">
+      <h1 id="t10">Review and send</h1>
+      <dl class="review" id="review"></dl>
+      <label class="consent" for="consent">
+        <input type="checkbox" id="consent" name="sms_consent" value="Yes">
+        <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#0C0C11" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+        <span>I agree to receive job availability texts from HairBySusy at this number. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for help.</span>
+      </label>
+      <div class="err" id="err-consent"></div>
+      <label class="consent second" for="commit">
+        <input type="checkbox" id="commit" name="commitment" value="Yes">
+        <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#0C0C11" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+        <span>I understand that replying YES to a job is a commitment. If I cancel a confirmed job within 24 hours of the scheduled call time, or don't show up, I will be permanently removed from the HairBySusy On-Call Team and won't be offered jobs again.</span>
+      </label>
+      <div class="err" id="err-commit"></div>
+      <p class="fine">HairBySusy never sells your information. We use your details only to contact you about jobs, and your mobile number is never shared for marketing. To see or delete your details, email info@hairbysusy.com. <a href="/privacy" target="_blank" rel="noopener">Privacy and texting terms</a>.</p>
+    </section>
+
+    <!-- 11 done -->
+    <section class="step" data-step="done" aria-labelledby="t11">
+      <svg class="mark" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="36"/><path d="M24 39l9 9 19-20"/></svg>
+      <h1 id="t11">You're on the list.</h1>
+      <p class="lede" id="doneText">Susy's team reviews every application. Once you're approved, you'll hear from us when there's a job in your location.</p>
+      <p class="fine">HairBySusy will never ask you to pay to join the team or to get a job. If someone does, it isn't us. Report it to info@hairbysusy.com.</p>
+    </section>
+
+  </main>
+
+  <div class="foot" id="foot">
+    <button type="button" class="primary" id="next">Start application</button>
+    <div class="keyhint" id="keyhint">Press <kbd>Enter ↵</kbd> to continue</div>
+    <a class="ghost" id="igLink" href="https://www.instagram.com/hairbysusy/" rel="noopener" hidden>See Susy's work on Instagram · @hairbysusy</a>
+  </div>
+</form>
+
+<div class="rules" id="rules" role="dialog" aria-modal="true" aria-labelledby="rulesTitle" aria-describedby="rulesBody" hidden>
+  <div class="panel">
+    <p class="eyebrow">The On-Call Team rule</p>
+    <h2 id="rulesTitle">Before you apply</h2>
+    <div id="rulesBody">
+      <p>Susy's clients book on short notice. When you reply YES to a job, you are booked, and Susy has given her word to her client.</p>
+      <ul>
+        <li><b>Replying YES is a commitment.</b></li>
+        <li>If you have a confirmed job and need to cancel, contact Susy's team directly. Canceling a confirmed job within 24 hours of the scheduled call time means you are <b>permanently removed</b> from the HairBySusy On-Call Team and will not be offered jobs again.</li>
+        <li>If you don't show up, you will be <b>permanently removed</b>.</li>
+        <li>You can stop job texts at any time by replying STOP.</li>
+      </ul>
+    </div>
+    <button type="button" class="primary" id="rulesOk">I understand</button>
+    <button type="button" class="rulesback" id="rulesBack">Go back</button>
+  </div>
+</div>
+
+<script src="/crew.js"></script>
+</body>
+</html>

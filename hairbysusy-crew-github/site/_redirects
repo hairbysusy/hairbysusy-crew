@@ -4,6 +4,25 @@ https://team.hairbysusy.com/index.html          /team/                          
 https://crew.hairbysusy.com/team/*              https://team.hairbysusy.com/team/:splat  301!
 https://hairbysusy-crew.netlify.app/team/*      https://team.hairbysusy.com/team/:splat  301!
 
+# bookhbs.com: HBS on one site. The home page is "Need a stylist fast?" (the /book/ pages),
+# stylists apply at /apply/, and the private team app stays at team.hairbysusy.com.
+# No rule may ever match /apply/: the stylist form sends applications to that page, and a rule there
+# would swallow them (Netlify Forms).
+https://www.bookhbs.com/*            https://bookhbs.com/:splat                301!
+https://bookhbs.com/                 /book/                                    200!
+https://bookhbs.com/index.html       https://bookhbs.com/                      301!
+https://bookhbs.com/crew             https://bookhbs.com/apply/                301!
+https://bookhbs.com/join             https://bookhbs.com/apply/                301!
+https://bookhbs.com/team             https://team.hairbysusy.com/team/         301!
+https://bookhbs.com/team/*           https://team.hairbysusy.com/team/:splat   301!
+https://bookhbs.com/city             https://crew.hairbysusy.com/city/         302!
+https://bookhbs.com/city/*           https://crew.hairbysusy.com/city/:splat   302!
+# Client posting opens on Susy's word (LIVE_OPEN in netlify/lib/book/rules.mjs and
+# site/book/common.js). Until then the posting page sends visitors to the home page.
+# Remove these two lines when posting opens.
+https://bookhbs.com/book/post        https://bookhbs.com/                      302!
+https://bookhbs.com/book/post/*      https://bookhbs.com/                      302!
+
 # The HBS client pages (/book/) are for bookhbs.com and the test links only (this site's own
 # address, hairbysusy-crew.netlify.app/book/, and deploy previews). The crew and team sites never
 # show them.
