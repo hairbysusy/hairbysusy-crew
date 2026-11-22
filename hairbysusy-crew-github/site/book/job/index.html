@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0C0C11">
+<title>Your job · HBS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/book/book.css">
+</head>
+<body>
+<div class="glow" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+<p class="testflag" id="testflag" hidden>Test link · not public</p>
+<div class="page">
+
+  <header class="jobtop">
+    <a class="brand" href="/book/" aria-label="HBS home">HBS</a>
+    <a class="iconbtn press" href="/book/" aria-label="Close">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </a>
+  </header>
+
+  <main class="job">
+
+    <!-- loading -->
+    <div id="vLoading">
+      <p class="eyebrow">Your job</p>
+      <p class="say" id="loadingText">Loading your job…</p>
+    </div>
+
+    <!-- paid and posted -->
+    <div id="vPosted" hidden>
+      <p class="eyebrow">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        Booking fee paid
+      </p>
+      <h1 id="postedTitle">Job posted.</h1>
+      <p class="meta" data-meta></p>
+      <ol class="track" aria-label="Job status">
+        <li id="tPosted">Posted</li>
+        <li id="tYes">Saying yes</li>
+        <li id="tCheck">We check</li>
+        <li id="tMatched">Matched</li>
+      </ol>
+      <p class="next" id="nextLine">Next, our team checks their work and calls them.</p>
+
+      <section class="yes" aria-labelledby="yesCount">
+        <div class="yeshead">
+          <p id="yesCount" aria-live="polite"><span class="num" id="yesNum">0</span><span class="lbl" id="yesLbl">stylists said yes</span></p>
+          <span class="live"><span class="livedot" aria-hidden="true"><span class="pulse"></span><span></span></span>Live</span>
+        </div>
+        <ul id="yesList"></ul>
+        <p class="waiting" id="yesWaiting">Your job is going out to stylists who take clients in <span id="yesCity">your city</span>.</p>
+      </section>
+
+      <div class="notes">
+        <p>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <span>Names stay private until you're matched.</span>
+        </p>
+        <p>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          <span>If we can't match you, your booking fee is refunded in full.</span>
+        </p>
+        <p>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          <span>Keep this page's link. It's your private page for this job.</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- not paid yet -->
+    <div id="vUnpaid" hidden>
+      <p class="eyebrow">Booking fee not paid</p>
+      <h1>Almost posted.</h1>
+      <p class="meta" data-meta></p>
+      <p class="say">Your job goes out to stylists once the booking fee is paid.</p>
+      <div class="sums">
+        <div>
+          <div class="feeline"><span>Booking fee, 30%</span><span id="uFee"></span></div>
+          <p>Refunded in full if we can't match you. Non-refundable once you're matched.</p>
+        </div>
+      </div>
+      <p class="err" id="payErr" role="alert" hidden></p>
+    </div>
+
+    <!-- just paid: waiting for Wix to confirm -->
+    <div id="vConfirm" hidden>
+      <p class="eyebrow">Booking fee</p>
+      <h1>Confirming your payment.</h1>
+      <p class="meta" data-meta></p>
+      <p class="say" id="confirmText">This takes a few seconds.</p>
+    </div>
+
+    <!-- expired, refunded, cancelled, not found -->
+    <div id="vEnd" hidden>
+      <p class="eyebrow" id="endEyebrow"></p>
+      <h1 id="endTitle"></h1>
+      <p class="meta" data-meta></p>
+      <p class="say" id="endText"></p>
+    </div>
+  </main>
+
+  <div class="actions">
+    <button type="button" class="cta press" id="payBtn" hidden>Pay</button>
+    <p class="working" id="payWorking" aria-live="polite" hidden>Opening the secure checkout…</p>
+    <a class="cta press" id="newJob" href="/book/post/" hidden>Post a new job</a>
+    <a class="cta ghost press" href="/book/">Back to home</a>
+  </div>
+</div>
+<script src="/book/common.js"></script>
+<script src="/book/job.js"></script>
+</body>
+</html>

@@ -3,3 +3,14 @@ https://team.hairbysusy.com/                    /team/                          
 https://team.hairbysusy.com/index.html          /team/                                 302!
 https://crew.hairbysusy.com/team/*              https://team.hairbysusy.com/team/:splat  301!
 https://hairbysusy-crew.netlify.app/team/*      https://team.hairbysusy.com/team/:splat  301!
+
+# The HBS client pages (/book/) are for bookhbs.com and Netlify test links only. The crew and team
+# sites never show them.
+https://crew.hairbysusy.com/book                 https://crew.hairbysusy.com/            302!
+https://crew.hairbysusy.com/book/*               https://crew.hairbysusy.com/            302!
+https://team.hairbysusy.com/book                 https://team.hairbysusy.com/team/       302!
+https://team.hairbysusy.com/book/*               https://team.hairbysusy.com/team/       302!
+https://hairbysusy-crew.netlify.app/book         https://crew.hairbysusy.com/            302!
+https://hairbysusy-crew.netlify.app/book/*       https://crew.hairbysusy.com/            302!
+https://main--hairbysusy-crew.netlify.app/book   https://crew.hairbysusy.com/            302!
+https://main--hairbysusy-crew.netlify.app/book/* https://crew.hairbysusy.com/            302!

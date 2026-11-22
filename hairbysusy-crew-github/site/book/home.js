@@ -1,0 +1,31 @@
+'use strict';
+
+(() => {
+  const btn = document.getElementById('menuBtn');
+  const menu = document.getElementById('menu');
+  const close = (focusBtn) => {
+    menu.hidden = true;
+    btn.setAttribute('aria-expanded', 'false');
+    if (focusBtn) btn.focus();
+  };
+  btn.addEventListener('click', () => {
+    const opening = menu.hidden;
+    menu.hidden = !opening;
+    btn.setAttribute('aria-expanded', String(opening));
+    if (opening) menu.querySelector('a').focus();
+  });
+  document.addEventListener('click', (e) => {
+    if (!menu.hidden && !menu.contains(e.target) && !btn.contains(e.target)) close(false);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !menu.hidden) close(true);
+  });
+
+  const last = window.HBS.lastJob();
+  if (last) {
+    const link = document.getElementById('yourJobLink');
+    link.href = window.HBS.jobUrl(last.j, last.k);
+    link.textContent = 'See your job' + (typeof last.label === 'string' && last.label ? ' · ' + last.label.slice(0, 60) : '');
+    document.getElementById('yourJob').hidden = false;
+  }
+})();
