@@ -4,6 +4,12 @@ https://team.hairbysusy.com/index.html          /team/                          
 https://crew.hairbysusy.com/team/*              https://team.hairbysusy.com/team/:splat  301!
 https://hairbysusy-crew.netlify.app/team/*      https://team.hairbysusy.com/team/:splat  301!
 
+# crew.hairbysusy.com: the sign-up page lives at bookhbs.com/apply now, so links to the old page go
+# there. Only the page itself moves: /apply/ (which a form still open on the old page sends
+# applications to), the city confirmation links (/city/) and /privacy keep working here.
+https://crew.hairbysusy.com/                     https://bookhbs.com/apply/              302!
+https://crew.hairbysusy.com/index.html           https://bookhbs.com/apply/              302!
+
 # bookhbs.com: HBS on one site. The home page is "Need a stylist fast?" (the /book/ pages),
 # stylists apply at /apply/, and the private team app stays at team.hairbysusy.com.
 # No rule may ever match /apply/: the stylist form sends applications to that page, and a rule there
@@ -24,11 +30,11 @@ https://bookhbs.com/book/post        https://bookhbs.com/                      3
 https://bookhbs.com/book/post/*      https://bookhbs.com/                      302!
 
 # The HBS client pages (/book/) are for bookhbs.com and the test links only (this site's own
-# address, hairbysusy-crew.netlify.app/book/, and deploy previews). The crew and team sites never
-# show them.
-https://crew.hairbysusy.com/book                 https://crew.hairbysusy.com/            302!
-https://crew.hairbysusy.com/book/*               https://crew.hairbysusy.com/            302!
+# address, hairbysusy-crew.netlify.app/book/, and deploy previews). On crew.hairbysusy.com and the
+# branch address they go to bookhbs.com; the team site never shows them.
+https://crew.hairbysusy.com/book                 https://bookhbs.com/                    302!
+https://crew.hairbysusy.com/book/*               https://bookhbs.com/book/:splat         302!
 https://team.hairbysusy.com/book                 https://team.hairbysusy.com/team/       302!
 https://team.hairbysusy.com/book/*               https://team.hairbysusy.com/team/       302!
-https://main--hairbysusy-crew.netlify.app/book   https://crew.hairbysusy.com/            302!
-https://main--hairbysusy-crew.netlify.app/book/* https://crew.hairbysusy.com/            302!
+https://main--hairbysusy-crew.netlify.app/book   https://bookhbs.com/                    302!
+https://main--hairbysusy-crew.netlify.app/book/* https://bookhbs.com/book/:splat         302!

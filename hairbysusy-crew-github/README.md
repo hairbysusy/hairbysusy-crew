@@ -3,7 +3,7 @@
 These live in this repository, all on one Netlify project, which deploys it automatically:
 
 1. **bookhbs.com**: HBS on one site. The home page is "Need a stylist fast?" (the `/book/` pages), where clients post a job and pay the booking fee, and stylists apply at **bookhbs.com/apply**. Client posting opens on Susy's word: until then bookhbs.com says booking opens soon and takes no jobs (see "Opening client posting" below).
-2. **crew.hairbysusy.com**: the On-Call Team sign-up, the same form as bookhbs.com/apply.
+2. **crew.hairbysusy.com**: the On-Call Team sign-up's old address. Its page sends visitors to bookhbs.com/apply; the city confirmation links (/city/) still open here.
 3. **team.hairbysusy.com**: Susy's Crew, the private team app. Only the Google accounts listed in `ALLOWED_EMAILS` can sign in. It stays on its own address, apart from the public site.
 
 The test link for the client pages is https://hairbysusy-crew.netlify.app/book/ (marked as a test link, hidden from search): it can always post, as a test. The client pages never open on the crew or team sites. Deploy previews show the pages too, but can't post: Netlify keeps the Wix key out of deploy previews of this public repository, which is the safe setting.
