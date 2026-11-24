@@ -9,6 +9,8 @@
 //   POST /api/book/address  the matched client adds the exact address.
 //   POST /api/book/stylist  a stylist's own job page asks how the job stands for her.
 //   POST /api/book/answer   the stylist answers: "I'm available" (yes) or "Not this time" (no).
+//   POST /api/book/voice    the client's voice note for a job they just posted (up to a minute).
+//                           Only the HBS team hears it, in the team app (lib/book/voice.mjs).
 //
 // Private links: the client's link and each stylist's link are signed (lib/book/links.mjs), so
 // nothing stored in Wix can be turned into a working link. Clients see their own job only, and
@@ -29,6 +31,7 @@ import { insertJob, getJob, updateJob, countSince } from '../lib/book/store.mjs'
 import { createCheckout, findPayment, PayError } from '../lib/book/pay.mjs';
 import { clientKey, stylistKey, linksReady, sameText } from '../lib/book/links.mjs';
 import { clientView, stylistView, stylistAnswer, readAddress, expired, callPassed, FlowError, JOB_ID_RE } from '../lib/book/flow.mjs';
+import { readVoice, saveVoice, dropVoice, countVoiceSince, VOICE_MAX_BODY } from '../lib/book/voice.mjs';
 
 const LIVE_HOSTS = new Set(['bookhbs.com', 'www.bookhbs.com']);
 const LIVE_TEST_HOST = 'hairbysusy-crew.netlify.app';
@@ -37,6 +40,9 @@ const MAX_BODY = 4096;
 const PER_SENDER_HOUR = 6; // jobs one sender can post in an hour
 const ALL_HOUR = 60; // jobs everyone together can post in an hour
 const MAX_CHECKOUTS = 8; // checkouts one job can open
+const VOICE_WINDOW = 3 * 3600000; // a voice note is sent with the job, right after it's posted
+const MAX_VOICE_NOTES = 4; // notes one job can be sent (each replaces the one before)
+const ALL_VOICE_HOUR = 30; // notes everyone together can send in an hour
 const ID_RE = JOB_ID_RE;
 const KEY_RE = /^[A-Za-z0-9_-]{24}$/;
 const STYLIST_KEY_RE = /^[A-Za-z0-9_-]{22}$/;
@@ -82,10 +88,10 @@ function fromOurPage(req, site) {
   return (req.headers.get('content-type') || '').toLowerCase().startsWith('application/json');
 }
 
-async function readBody(req) {
-  if (Number(req.headers.get('content-length') || 0) > MAX_BODY) return null;
+async function readBody(req, max = MAX_BODY) {
+  if (Number(req.headers.get('content-length') || 0) > max) return null;
   const text = await req.text();
-  if (text.length > MAX_BODY) return null;
+  if (text.length > max) return null;
   try {
     const body = JSON.parse(text);
     return body && typeof body === 'object' && !Array.isArray(body) ? body : null;
@@ -237,6 +243,40 @@ async function addAddress(req) {
   return json(200, { job: clientView(own.id, saved.doc) });
 }
 
+// The client's voice note for a job they just posted. Only the HBS team hears it.
+async function addVoice(req) {
+  const body = await readBody(req, VOICE_MAX_BODY + 1024);
+  if (!body) return json(400, { error: 'voice_size' });
+  const own = await loadOwn(body);
+  if (!own) return json(404, { error: 'not_found' });
+  const { doc, meta } = own.job;
+  if (!['unpaid', 'posted'].includes(doc.status) || Date.now() - meta.createdAt > VOICE_WINDOW) return json(409, { error: 'closed' });
+  if (((doc.voice && doc.voice.n) || 0) >= MAX_VOICE_NOTES) return json(429, { error: 'too_many' });
+  const note = readVoice(body);
+  if (note.error) return json(400, { error: note.error });
+  if ((await countVoiceSince(Date.now() - 3600000)) >= ALL_VOICE_HOUR) return json(429, { error: 'busy' });
+  const voice = await saveVoice(own.id, note, { test: Boolean(doc.test) });
+  let before = null;
+  let saved = null;
+  try {
+    saved = await updateJob(own.id, (cur) => {
+      before = cur.voice || null;
+      return {
+        ...cur,
+        voice: { ...voice, n: ((cur.voice && cur.voice.n) || 0) + 1 },
+        log: (cur.log || []).concat({ at: voice.at, what: 'client left a voice note (' + voice.secs + 's)' }).slice(-60),
+      };
+    }, 'client page');
+  } finally {
+    if (!saved) await dropVoice(own.id, voice); // the job never pointed at it
+  }
+  if (!saved) return json(404, { error: 'not_found' });
+  if (before && before.stamp !== voice.stamp) await dropVoice(own.id, before); // the note this one replaces
+  await logActivity('client page', 'voice note', 'client/' + own.id, voice.secs + 's' + (doc.test ? ' (test)' : '')).catch(() => {});
+  console.log('book: voice note', own.id, voice.secs + 's', voice.bytes + ' bytes');
+  return json(201, { ok: true, secs: voice.secs });
+}
+
 async function stylistStatus(req) {
   const body = await readBody(req);
   if (!body) return json(400, { error: 'form' });
@@ -330,6 +370,7 @@ export default async (req, context) => {
     if (route === '/api/book/address') return await addAddress(req);
     if (route === '/api/book/stylist') return await stylistStatus(req);
     if (route === '/api/book/answer') return await stylistAnswers(req);
+    if (route === '/api/book/voice') return await addVoice(req);
     return json(404, { error: 'not_found' });
   } catch (e) {
     console.error('book: failed', route, e && (e.code || e.status || e.message));
@@ -337,4 +378,4 @@ export default async (req, context) => {
   }
 };
 
-export const config = { path: ['/api/book/jobs', '/api/book/job', '/api/book/pay', '/api/book/address', '/api/book/stylist', '/api/book/answer'] };
+export const config = { path: ['/api/book/jobs', '/api/book/job', '/api/book/pay', '/api/book/address', '/api/book/stylist', '/api/book/answer', '/api/book/voice'] };

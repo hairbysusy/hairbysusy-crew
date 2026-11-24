@@ -388,6 +388,7 @@
       '<div class="jhead"><div><h3 class="jtitle">' + esc(title) + (d.test ? ' <span class="u10 pill ex">Test</span>' : '') + '</h3>' +
       '<p class="jsub">' + esc(d.kind + ' · ' + (d.hair || []).join(', ') + ' · ' + need + (need === 1 ? ' stylist' : ' stylists') + ' · ' + cjMoney(d.budget) + (need > 1 ? ' each' : '')) + '</p></div>' + pill + '</div>' +
       '<p class="jdetails">' + esc(d.hood + ', ' + d.city) + (d.note ? '. Note: ' + esc(d.note) : '') + (d.address && d.address.text ? '<br>Address: ' + esc(d.address.text) : '') + '</p>' +
+      (d.voice && d.voice.stamp && d.voice.secs ? '<div class="vnrow"><button class="btn small vnote" type="button" data-cact="voice"' + C + ' data-who="' + esc(first(cl.name)) + '" data-title="' + esc(title) + '">' + VN_MIC + 'Voice note · ' + vclock(d.voice.secs) + '</button><span class="meta">From the client. Only the team hears it.</span></div>' : '') +
       noOne + clientBar +
       '<div class="jmeta">' + meta.map(m => '<span>' + esc(m) + '</span>').join('') + '</div>' +
       group('Booked', booked) + group('Said yes. Call them, then book', yes) + group('Asked', by('asked')) +
@@ -427,6 +428,7 @@
     if (act === 'copy' || act === 'copyclient') { e.preventDefault(); return copy(a.dataset.link, 'Link copied.'); }
     if (act === 'ask') { clientDo({ op: 'ask', id, pid }); return; } // the link opens Messages; this saves who was asked
     e.preventDefault();
+    if (act === 'voice') return playVoice(id, a.dataset.who, a.dataset.title);
     if (act === 'state') {
       const st = a.dataset.state;
       return clientDo({ op: 'state', id, pid, state: st }, st === 'booked' ? 'Booked. Text them, and the client.' : '');
@@ -437,6 +439,113 @@
     }
   }
   ['clientsList', 'clientsPastList', 'clientsUnpaidList'].forEach(id => $(id).addEventListener('click', onClientClick));
+
+  /* ---------- client voice notes ----------
+     A client can leave a voice note when they post (bookhbs.com). Only the team hears it, here;
+     stylists never do. It plays in a bar at the bottom of the screen, outside the client list, so
+     the list refreshing doesn't stop it. The note is fetched when tapped and kept only in memory. */
+  const vclock = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+  const VN_MIC = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>';
+  const VB = { id: '', url: '', secs: 0, loading: '', frame: 0 };
+  let vbEl = null, vbAudio = null;
+  const vbq = sel => vbEl.querySelector(sel);
+  function voiceBar(){
+    if (vbEl) return;
+    vbEl = document.createElement('div');
+    vbEl.className = 'voicebar';
+    vbEl.hidden = true;
+    vbEl.setAttribute('role', 'region');
+    vbEl.setAttribute('aria-label', 'Client voice note');
+    vbEl.innerHTML =
+      '<button class="vb-play" type="button" aria-label="Play">' +
+        '<svg class="i-play" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg>' +
+        '<svg class="i-pause" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 5h3v14h-3zM13.5 5h3v14h-3z" fill="currentColor"/></svg></button>' +
+      '<div class="vb-mid"><b class="vb-title"></b><span class="vb-sub"></span><span class="vb-track" aria-hidden="true"><span></span></span><span class="vb-msg" hidden></span></div>' +
+      '<span class="vb-time">0:00</span>' +
+      '<a class="btn small vb-dl" hidden>Download</a>' +
+      '<button class="vb-close" type="button" aria-label="Close the voice note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>';
+    document.body.appendChild(vbEl);
+    vbAudio = new Audio();
+    vbq('.vb-play').addEventListener('click', () => {
+      if (!VB.url) return;
+      if (vbAudio.paused) vbPlay(); else vbAudio.pause();
+    });
+    vbq('.vb-close').addEventListener('click', () => closeVoice());
+    vbAudio.addEventListener('play', () => { vbq('.vb-play').classList.add('on'); vbq('.vb-play').setAttribute('aria-label', 'Pause'); cancelAnimationFrame(VB.frame); VB.frame = requestAnimationFrame(vbShow); });
+    vbAudio.addEventListener('pause', () => { vbq('.vb-play').classList.remove('on'); vbq('.vb-play').setAttribute('aria-label', 'Play'); vbShow(); });
+    vbAudio.addEventListener('ended', () => { try { vbAudio.currentTime = 0; } catch(e){} vbShow(); });
+    vbAudio.addEventListener('error', () => { if (VB.url) cantPlay(); });
+  }
+  function vbShow(){
+    if (!vbEl || vbEl.hidden) return;
+    const t = vbAudio.currentTime || 0;
+    vbq('.vb-track span').style.transform = 'scaleX(' + (VB.secs ? Math.min(1, t / VB.secs) : 0).toFixed(4) + ')';
+    vbq('.vb-time').textContent = vclock(vbAudio.paused && !t ? VB.secs : t);
+    if (!vbAudio.paused) VB.frame = requestAnimationFrame(vbShow);
+  }
+  function vbPlay(){
+    const p = vbAudio.play();
+    if (p && p.catch) p.catch(err => { if (!(err && err.name === 'NotAllowedError' || err && err.name === 'AbortError')) cantPlay(); });
+  }
+  function cantPlay(){
+    const m = vbq('.vb-msg');
+    m.textContent = 'This browser can’t play this recording. Download it, or open the team app in Chrome.';
+    m.hidden = false;
+    vbq('.vb-dl').hidden = false;
+  }
+  // Stops the note and lets go of it. keepBar: another note is about to load in its place.
+  function closeVoice(keepBar){
+    VB.loading = '';
+    if (vbAudio) { cancelAnimationFrame(VB.frame); vbAudio.pause(); vbAudio.removeAttribute('src'); try { vbAudio.load(); } catch(e){} }
+    if (VB.url) { try { URL.revokeObjectURL(VB.url); } catch(e){} }
+    VB.id = ''; VB.url = ''; VB.secs = 0;
+    if (vbEl && !keepBar) { vbEl.hidden = true; document.body.classList.remove('vb-on'); }
+  }
+  const VB_EXT = { 'audio/mp4': '.m4a', 'audio/webm': '.webm', 'audio/ogg': '.ogg', 'audio/aac': '.aac', 'audio/mpeg': '.mp3' };
+  async function playVoice(id, who, title){
+    voiceBar();
+    if (VB.id === id && VB.url) { if (vbAudio.paused) vbPlay(); else vbAudio.pause(); return; }
+    if (VB.loading === id) return;
+    closeVoice(true);
+    VB.loading = id;
+    vbq('.vb-title').textContent = (who ? who + '’s' : 'Client’s') + ' voice note';
+    vbq('.vb-sub').textContent = title || '';
+    vbq('.vb-msg').hidden = true;
+    vbq('.vb-dl').hidden = true;
+    vbq('.vb-time').textContent = '…';
+    vbq('.vb-track span').style.transform = 'scaleX(0)';
+    vbq('.vb-play').disabled = true;
+    vbEl.hidden = false;
+    document.body.classList.add('vb-on');
+    let note;
+    try { note = await team.voice(id); }
+    catch(e){
+      if (VB.loading !== id) return;
+      closeVoice();
+      const c = e && e.code;
+      toast(c === 'not_found' ? 'That voice note isn’t there anymore.' : c === 'offline' ? 'No connection. Try again when you’re back online.' : c === 'signed_out' ? 'You’re signed out. Sign in again to play it.' : 'The voice note didn’t load. Try again.');
+      return;
+    }
+    if (VB.loading !== id) return; // another note was tapped meanwhile
+    VB.loading = '';
+    let blob;
+    try {
+      const raw = atob(String(note.data || ''));
+      const bytes = new Uint8Array(raw.length);
+      for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+      blob = new Blob([bytes], { type: String(note.type || 'audio/webm') });
+    } catch(e){ closeVoice(); toast('That voice note couldn’t be opened.'); return; }
+    VB.id = id;
+    VB.secs = Number(note.secs) || 0;
+    VB.url = URL.createObjectURL(blob);
+    const dl = vbq('.vb-dl');
+    dl.href = VB.url;
+    dl.download = 'HBS voice note ' + id + (VB_EXT[blob.type] || '');
+    vbq('.vb-play').disabled = false;
+    vbAudio.src = VB.url;
+    vbShow();
+    vbPlay();
+  }
 
   /* ---------- "let people know" sheet ---------- */
   const nameOf = r => r.x.name || r.p.name || '';

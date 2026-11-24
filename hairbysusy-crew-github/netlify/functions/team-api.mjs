@@ -21,7 +21,8 @@ import {
 } from '../lib/team/wix.mjs';
 import { contactsOp } from '../lib/team/contacts.mjs';
 import { Invalid, ID_RE, cleanDoc, deepMerge, checkSize } from '../lib/team/validate.mjs';
-import { listJobs, updateJob } from '../lib/book/store.mjs';
+import { listJobs, updateJob, getJob } from '../lib/book/store.mjs';
+import { getVoice } from '../lib/book/voice.mjs';
 import { clientLink, stylistLink, linksReady } from '../lib/book/links.mjs';
 import { teamChange, FlowError, JOB_ID_RE, PID_RE } from '../lib/book/flow.mjs';
 
@@ -250,6 +251,14 @@ function clientOut(job, crew) {
   return { id: job.id, data: doc, links };
 }
 
+// A client's voice note, for the team to play: { type, secs, data (base64) }.
+async function clientVoice(id) {
+  if (typeof id !== 'string' || !JOB_ID_RE.test(id)) throw new Invalid('bad id');
+  const job = await getJob(id);
+  const note = job && job.doc.voice ? await getVoice(id, job.doc.voice) : null;
+  return note;
+}
+
 const CLIENT_OPS = new Set(['ask', 'state', 'cancel', 'reopen', 'done']);
 
 async function clientChange(body, user, context) {
@@ -317,6 +326,13 @@ export default async (req, context) => {
     if (route === 'write' && method === 'POST') { await write(await readJson(req), user, context); return json(200, { ok: true }); }
     if (route === 'wix' && method === 'POST') return json(200, { ok: true, result: await contactsOp(await readJson(req)) });
     if (route === 'client' && method === 'POST') return json(200, { ok: true, job: await clientChange(await readJson(req), user, context) });
+    if (route === 'voice' && method === 'GET') {
+      const id = url.searchParams.get('id');
+      const note = await clientVoice(id);
+      if (!note) return json(404, { error: 'not_found' });
+      await logActivity(user.email, 'played voice note', 'client/' + id).catch(() => {}); // who listened, and when
+      return json(200, note);
+    }
     if (route === 'logout' && method === 'POST') {
       sessionCache.delete(user.sessionId);
       await deleteSession(user.sessionId);

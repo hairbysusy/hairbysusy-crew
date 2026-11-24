@@ -276,3 +276,26 @@ details.past[open] summary::before{content:"▾ ";}
 .who{color:var(--muted);font-size:13px;margin:28px 0 0}
 .linkbtn{background:none;border:0;padding:0;color:var(--lavender);text-decoration:underline;cursor:pointer;font-size:13px}
 body{padding-bottom:env(safe-area-inset-bottom)}
+
+/* A client's voice note: the button on the job, and the player bar at the bottom of the screen */
+.vnrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+.vnrow .meta{font-size:12px}
+.vnote svg{flex:0 0 auto}
+.voicebar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(560px,calc(100% - 24px));z-index:25;display:flex;align-items:center;gap:12px;padding:10px 10px 10px 10px;border-radius:18px;background:var(--raised);border:1px solid var(--line);box-shadow:0 14px 44px rgba(0,0,0,.5);animation:vbin .35s var(--ease)}
+@keyframes vbin{from{opacity:0;transform:translate(-50%,16px)}to{opacity:1;transform:translate(-50%,0)}}
+.vb-play{flex:0 0 44px;width:44px;height:44px;border-radius:22px;border:0;background:var(--text);color:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.vb-play[disabled]{opacity:.4;cursor:default}
+.vb-play .i-pause,.vb-play.on .i-play{display:none}
+.vb-play.on .i-pause{display:block}
+.vb-mid{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.vb-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vb-sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vb-track{display:block;margin-top:4px;height:4px;border-radius:2px;background:rgba(236,233,255,.16);overflow:hidden}
+.vb-track span{display:block;width:100%;height:100%;background:var(--text);transform-origin:left;transform:scaleX(0)}
+.vb-msg{margin-top:4px;font-size:12px;line-height:1.35;color:var(--muted);white-space:normal}
+.vb-time{flex:0 0 auto;min-width:34px;text-align:right;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--muted)}
+.vb-close{flex:0 0 36px;width:36px;height:36px;border-radius:18px;border:0;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.vb-close:hover{color:var(--text)}
+body.vb-on{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+body.vb-on .toast{bottom:calc(100px + env(safe-area-inset-bottom))}
+@media (prefers-reduced-motion: reduce){.voicebar{animation:none}}

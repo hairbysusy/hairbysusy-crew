@@ -1,11 +1,13 @@
 # Security headers. Netlify applies these to the files it serves; the team app's server
 # (netlify/functions/team-api.mjs) sets its own on every answer.
 
-# Every file, both sites
+# Every file, both sites. The microphone is allowed only to this site's own pages (the HBS post
+# page records the client's voice note for the team, and only after the client taps record and
+# allows it); no other site, and nothing framed, can use it.
 /*
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
-  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Permissions-Policy: camera=(), microphone=(self), geolocation=(), payment=(), usb=()
   Cross-Origin-Opener-Policy: same-origin
   Strict-Transport-Security: max-age=31536000
 
@@ -45,9 +47,10 @@
   Cache-Control: no-cache
 
 # The private team app (team.hairbysusy.com): only its own scripts run, nothing can frame it,
-# it talks only to its own server, and search engines are told to stay out.
+# it talks only to its own server, and search engines are told to stay out. It plays clients'
+# voice notes from memory (blob: addresses it makes itself), never from another site.
 /team/*
-  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; media-src blob:; connect-src 'self'; manifest-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; upgrade-insecure-requests
   Referrer-Policy: no-referrer
   X-Robots-Tag: noindex, nofollow
   Cache-Control: no-cache
@@ -55,14 +58,15 @@
 
 # HBS client pages (bookhbs.com; for now only on Netlify test links): only their own scripts run,
 # nothing can frame them, they talk only to their own server, a client's private job link never
-# leaves in a Referer header, and search engines stay out until launch.
+# leaves in a Referer header, and search engines stay out until launch. The post page plays the
+# client's own voice note back from memory (blob:) before it's sent.
 /book
   Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://static.wixstatic.com; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; upgrade-insecure-requests
   Referrer-Policy: no-referrer
   X-Robots-Tag: noindex, nofollow
   Cache-Control: no-cache
 /book/*
-  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://static.wixstatic.com; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://static.wixstatic.com; media-src blob:; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; upgrade-insecure-requests
   Referrer-Policy: no-referrer
   X-Robots-Tag: noindex, nofollow
   Cache-Control: no-cache

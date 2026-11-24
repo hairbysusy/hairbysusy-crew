@@ -247,6 +247,270 @@
   $('prevMonth').addEventListener('click', () => { S.mo = Math.max(0, S.mo - 1); save(); render(); });
   $('nextMonth').addEventListener('click', () => { S.mo = Math.min(11, S.mo + 1); save(); render(); });
 
+  /* ---------------- voice note for the HBS team ---------------- */
+
+  // On the job step the client can explain the job by voice, up to a minute. Only the HBS team
+  // hears it: it's sent right after the job is posted (POST /api/book/voice, before the checkout)
+  // and stylists never get it. Until then it stays in this tab's memory; nothing is saved on the
+  // device. Browsers that can't record don't show it.
+  const VOICE_SECS = 60;
+  const VOICE_MAX_BYTES = 1200000; // what the server takes
+  const VOICE_TYPES = ['audio/mp4;codecs=mp4a.40.2', 'audio/mp4', 'audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/webm'];
+  const BARS = 40;
+  const canRecord = Boolean(window.isSecureContext && navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+  const V = {
+    mode: 'idle', // idle, asking (waiting for the microphone), rec, done
+    blob: null, secs: 0, url: '', // the note that will be sent
+    rec: null, stream: null, chunks: [], t0: 0, stopAt: 0, timer: 0, ctx: null, an: null, buf: null, levels: [], cancel: false,
+  };
+  const vAudio = new Audio();
+  for (let i = 0; i < BARS; i++) $('vBars').appendChild(document.createElement('i'));
+
+  const clock = (secs) => Math.floor(secs / 60) + ':' + String(Math.floor(secs % 60)).padStart(2, '0');
+  function vErr(msg) { const e = $('vErr'); e.textContent = msg || ''; e.hidden = !msg; }
+  const vSay = (msg) => { $('vSay').textContent = msg; };
+
+  function recType() {
+    for (const t of VOICE_TYPES) {
+      try { if (MediaRecorder.isTypeSupported(t)) return t; } catch { /* older browsers */ }
+    }
+    return '';
+  }
+  function stopStream(stream) {
+    if (stream) for (const t of stream.getTracks()) { try { t.stop(); } catch { /* already ended */ } }
+  }
+  function stopMeter() {
+    if (V.ctx) { try { V.ctx.close(); } catch { /* already closed */ } }
+    V.ctx = null; V.an = null; V.buf = null;
+  }
+  const settle = () => { V.mode = V.blob ? 'done' : 'idle'; renderVoice(); };
+
+  async function startRec() {
+    if (V.mode === 'asking' || V.mode === 'rec') return;
+    vErr('');
+    stopPlay();
+    // The level meter starts inside the tap, so phones let it run.
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) { try { V.ctx = new AC(); V.ctx.resume().catch(() => {}); } catch { V.ctx = null; } }
+    V.mode = 'asking';
+    V.cancel = false;
+    renderVoice();
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+    } catch (e) {
+      stopMeter();
+      const name = e && e.name;
+      vErr(name === 'NotAllowedError' || name === 'SecurityError'
+        ? "To record, allow the microphone when your browser asks. If it doesn't ask, open this page in Safari or Chrome."
+        : name === 'NotFoundError' || name === 'OverconstrainedError'
+          ? 'No microphone was found on this device.'
+          : "Recording didn't start. Try again.");
+      settle();
+      return;
+    }
+    if (V.cancel || step !== 3) { stopStream(stream); stopMeter(); settle(); return; }
+    const type = recType();
+    let rec = null;
+    try {
+      rec = new MediaRecorder(stream, type ? { mimeType: type, audioBitsPerSecond: 48000 } : { audioBitsPerSecond: 48000 });
+    } catch {
+      try { rec = new MediaRecorder(stream); } catch { rec = null; }
+    }
+    if (!rec) { stopStream(stream); stopMeter(); vErr("This browser can't record. Open this page in Safari or Chrome."); settle(); return; }
+    V.rec = rec;
+    V.stream = stream;
+    V.chunks = [];
+    V.levels = [];
+    V.stopAt = 0;
+    rec.addEventListener('dataavailable', (e) => { if (e.data && e.data.size) V.chunks.push(e.data); });
+    rec.addEventListener('stop', () => finishRec(rec));
+    if (V.ctx) {
+      try {
+        V.an = V.ctx.createAnalyser();
+        V.an.fftSize = 1024;
+        V.ctx.createMediaStreamSource(stream).connect(V.an);
+        V.buf = new Uint8Array(V.an.fftSize);
+      } catch { stopMeter(); }
+    }
+    try { rec.start(); } catch {
+      V.rec = null; stopStream(stream); V.stream = null; stopMeter();
+      vErr("Recording didn't start. Try again.");
+      settle();
+      return;
+    }
+    V.t0 = performance.now();
+    V.mode = 'rec';
+    V.timer = setInterval(tick, 100);
+    renderVoice();
+    vSay('Recording. Up to 1 minute.');
+    $('vStop').focus();
+  }
+
+  const elapsed = () => ((V.stopAt || performance.now()) - V.t0) / 1000;
+
+  function drawBars() {
+    const bars = $('vBars').children;
+    const off = BARS - V.levels.length;
+    for (let i = 0; i < BARS; i++) bars[i].style.height = (4 + Math.round((i < off ? 0 : V.levels[i - off]) * 28)) + 'px';
+  }
+
+  function tick() {
+    if (V.mode !== 'rec') return;
+    const secs = elapsed();
+    $('vClock').textContent = clock(secs);
+    let level = 0;
+    if (V.an) {
+      V.an.getByteTimeDomainData(V.buf);
+      let sum = 0;
+      for (let i = 0; i < V.buf.length; i++) { const d = (V.buf[i] - 128) / 128; sum += d * d; }
+      level = Math.min(1, Math.sqrt(sum / V.buf.length) * 5);
+    }
+    V.levels.push(level);
+    if (V.levels.length > BARS) V.levels.shift();
+    drawBars();
+    if (secs >= VOICE_SECS) stopRec();
+  }
+
+  function stopRec() {
+    if (V.mode !== 'rec' || !V.rec) return;
+    V.stopAt = performance.now();
+    clearInterval(V.timer);
+    try { V.rec.stop(); } catch { finishRec(V.rec); }
+  }
+
+  function finishRec(rec) {
+    if (V.rec !== rec) return; // already handled
+    clearInterval(V.timer);
+    const secs = elapsed();
+    const type = rec.mimeType || (V.chunks[0] && V.chunks[0].type) || '';
+    const blob = new Blob(V.chunks, type ? { type } : {});
+    V.rec = null;
+    stopStream(V.stream);
+    V.stream = null;
+    V.chunks = [];
+    stopMeter();
+    if (secs < 1 || blob.size < 1000) { vErr('That was too short. Tap record and speak a little longer.'); settle(); return; }
+    if (blob.size > VOICE_MAX_BYTES) { vErr('That note is too long to send. Record a shorter one.'); settle(); return; }
+    dropNote();
+    V.blob = blob;
+    V.secs = Math.min(VOICE_SECS, Math.max(1, Math.round(secs)));
+    try { V.url = URL.createObjectURL(blob); vAudio.src = V.url; } catch { V.url = ''; }
+    V.mode = 'done';
+    renderVoice();
+    vSay('Voice note recorded, ' + clock(V.secs) + '.');
+    if (step === 3) $('vPlay').focus();
+  }
+
+  // Forgets the note (on delete, or when a new one replaces it).
+  function dropNote() {
+    stopPlay();
+    if (V.url) { try { URL.revokeObjectURL(V.url); } catch { /* gone */ } }
+    vAudio.removeAttribute('src');
+    try { vAudio.load(); } catch { /* nothing loaded */ }
+    V.blob = null; V.secs = 0; V.url = '';
+    V.mode = 'idle';
+  }
+
+  let playFrame = 0;
+  function showPlayback() {
+    const p = V.secs ? Math.min(1, vAudio.currentTime / V.secs) : 0;
+    $('vProg').style.transform = 'scaleX(' + p.toFixed(4) + ')';
+    $('vLen').textContent = clock(vAudio.paused && !vAudio.currentTime ? V.secs : vAudio.currentTime);
+    if (!vAudio.paused) playFrame = requestAnimationFrame(showPlayback);
+  }
+  function stopPlay() {
+    cancelAnimationFrame(playFrame);
+    if (!vAudio.paused) vAudio.pause();
+    try { if (vAudio.currentTime) vAudio.currentTime = 0; } catch { /* nothing loaded */ }
+    $('vPlay').classList.remove('on');
+    $('vPlay').setAttribute('aria-label', 'Play your voice note');
+    $('vProg').style.transform = 'scaleX(0)';
+    $('vLen').textContent = clock(V.secs);
+  }
+  vAudio.addEventListener('play', () => {
+    $('vPlay').classList.add('on');
+    $('vPlay').setAttribute('aria-label', 'Pause your voice note');
+    cancelAnimationFrame(playFrame);
+    playFrame = requestAnimationFrame(showPlayback);
+  });
+  vAudio.addEventListener('pause', () => {
+    $('vPlay').classList.remove('on');
+    $('vPlay').setAttribute('aria-label', 'Play your voice note');
+  });
+  vAudio.addEventListener('ended', stopPlay);
+
+  $('vStart').addEventListener('click', startRec);
+  $('vAgain').addEventListener('click', startRec);
+  $('vStop').addEventListener('click', stopRec);
+  $('vPlay').addEventListener('click', () => {
+    if (!V.url) return;
+    if (!vAudio.paused) { vAudio.pause(); return; }
+    vErr('');
+    const p = vAudio.play();
+    if (p && p.catch) p.catch(() => vErr("This browser can't play the note back. It will still be sent to the HBS team."));
+  });
+  $('vDelete').addEventListener('click', () => {
+    dropNote();
+    vErr('');
+    renderVoice();
+    vSay('Voice note deleted.');
+    $('vStart').focus();
+  });
+  // Leaving the page stops the microphone; a note in progress is kept if the page comes back.
+  window.addEventListener('pagehide', () => { if (V.mode === 'rec') stopRec(); else if (V.mode === 'asking') V.cancel = true; });
+
+  function renderVoice() {
+    $('voice').hidden = !canRecord;
+    const m = V.mode;
+    $('vStart').hidden = !(m === 'idle' || m === 'asking');
+    $('vStart').disabled = m === 'asking';
+    $('vStartSub').textContent = m === 'asking' ? 'Waiting for the microphone…' : 'Explain the job in your own words. Up to 1 minute.';
+    $('vLive').hidden = m !== 'rec';
+    $('vDone').hidden = m !== 'done';
+    $('vLinks').hidden = m !== 'done';
+    if (m !== 'rec') { V.levels = []; drawBars(); $('vClock').textContent = '0:00'; }
+    if (m === 'done' && vAudio.paused) $('vLen').textContent = clock(V.secs);
+  }
+
+  // The first bytes say what the recording is, whatever the browser called it.
+  async function noteType(blob) {
+    try {
+      const b = new Uint8Array(await blob.slice(0, 12).arrayBuffer());
+      const at = (i, s) => [...s].every((c, n) => b[i + n] === c.charCodeAt(0));
+      if (b[0] === 0x1a && b[1] === 0x45 && b[2] === 0xdf && b[3] === 0xa3) return 'audio/webm';
+      if (at(0, 'OggS')) return 'audio/ogg';
+      if (at(4, 'ftyp')) return 'audio/mp4';
+    } catch { /* fall back to the browser's name for it */ }
+    return blob.type || 'audio/webm';
+  }
+  function base64Of(blob) {
+    return new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => { const s = String(fr.result || ''); resolve(s.slice(s.indexOf(',') + 1)); };
+      fr.onerror = () => reject(fr.error);
+      fr.readAsDataURL(blob);
+    });
+  }
+  // Sends the note for the job just posted. Never stops the client from paying: if it fails, they
+  // are told, and the checkout opens anyway.
+  async function sendVoice(j, k) {
+    const working = $('working');
+    working.textContent = 'Sending your voice note to the HBS team…';
+    let ok = false;
+    try {
+      const [type, data] = await Promise.all([noteType(V.blob), base64Of(V.blob)]);
+      const r = await Promise.race([
+        H.api('/api/book/voice', { j, k, type, secs: V.secs, data }),
+        new Promise((resolve) => setTimeout(() => resolve({ status: 0 }), 30000)),
+      ]);
+      ok = r.status === 201;
+    } catch { ok = false; }
+    if (ok) { working.textContent = 'Opening the secure checkout…'; return; }
+    working.textContent = "Your voice note didn't send. Your job is saved. Opening the secure checkout…";
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+  }
+
   /* ---------------- drawing ---------------- */
 
   function renderCalendar() {
@@ -319,6 +583,7 @@
     $('more').disabled = S.count >= MAX_STYLISTS;
     $('openNote').hidden = S.noteOpen;
     $('noteWrap').hidden = !S.noteOpen;
+    renderVoice();
 
     // 4 budget
     if (document.activeElement !== budgetEl) budgetEl.value = S.budget > 0 ? S.budget.toLocaleString('en-US') : '';
@@ -341,6 +606,8 @@
       $('rPay').textContent = dollars(S.budget * 100) + (S.count > 1 ? ' each' : '');
       $('rFee').textContent = dollars(feeCents());
       $('rBudget').textContent = dollars(S.budget * S.count * 100);
+      $('rVoice').hidden = !V.blob;
+      $('rVoiceText').textContent = 'Your voice note (' + clock(V.secs) + ') goes to the HBS team only.';
       $('rBudgetNote').textContent = S.count > 1
         ? dollars(S.budget * 100) + ' each for ' + S.count + ' stylists. You pay your stylists directly.'
         : 'You pay your stylist directly.';
@@ -405,6 +672,9 @@
   const hideErr = () => { $('err').hidden = true; };
 
   function goTo(n, push) {
+    if (V.mode === 'rec') stopRec(); // a note being recorded is kept
+    else if (V.mode === 'asking') V.cancel = true;
+    stopPlay();
     step = Math.min(STEPS, Math.max(1, n));
     if (push) history.pushState({ step }, '');
     hideErr();
@@ -426,6 +696,7 @@
     busy = true;
     const go = $('go');
     go.disabled = true;
+    $('working').textContent = 'Opening the secure checkout…';
     $('working').hidden = false;
     const r = await H.api('/api/book/jobs', {
       city: S.city, hood: S.hood.trim(), date: chosenDate(), time: S.time, kind: S.kind, hair: S.hair,
@@ -439,6 +710,7 @@
         sessionStorage.setItem(POSTED, JSON.stringify({ j: d.j, k: d.k }));
         sessionStorage.removeItem(DRAFT);
       } catch { /* storage off */ }
+      if (V.blob) await sendVoice(d.j, d.k);
       if (d.payUrl && H.checkoutOk(d.payUrl)) { location.assign(d.payUrl); return; }
       location.assign(H.jobUrl(d.j, d.k) + '&e=' + encodeURIComponent(d.payError || 'payments_failed'));
       return;
@@ -494,7 +766,7 @@
   });
 
   window.addEventListener('pageshow', (e) => {
-    if (e.persisted) { busy = false; $('go').disabled = false; $('working').hidden = true; }
+    if (e.persisted) { busy = false; $('go').disabled = false; $('working').hidden = true; $('working').textContent = 'Opening the secure checkout…'; }
   });
 
   // A reload keeps the step the client was on.

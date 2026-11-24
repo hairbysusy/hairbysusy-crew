@@ -100,6 +100,38 @@
         <textarea class="field" id="note" rows="3" maxlength="500" placeholder="Hair length, the look, products you like"></textarea>
         <p class="help">Stylists see this before the match. Leave out names and addresses.</p>
       </div>
+      <div class="voice" id="voice" hidden>
+        <p class="eyebrow grouplabel" id="voiceLabel">Voice note for the HBS team</p>
+        <button type="button" class="vcard vstart press" id="vStart" aria-describedby="vHelp">
+          <span class="vround vmic" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>
+          </span>
+          <span class="t"><b>Record a voice note</b><small id="vStartSub">Explain the job in your own words. Up to 1 minute.</small></span>
+        </button>
+        <div class="vcard vlive" id="vLive" hidden>
+          <span class="vrec" aria-hidden="true"></span>
+          <span class="vclock" id="vClock">0:00</span>
+          <span class="vbars" id="vBars" aria-hidden="true"></span>
+          <button type="button" class="vround vstop press" id="vStop" aria-label="Stop recording">
+            <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2.5" fill="currentColor"/></svg>
+          </button>
+        </div>
+        <div class="vcard vdone" id="vDone" hidden>
+          <button type="button" class="vround vplay press" id="vPlay" aria-label="Play your voice note">
+            <svg class="i-play" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg>
+            <svg class="i-pause" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 5h3v14h-3zM13.5 5h3v14h-3z" fill="currentColor"/></svg>
+          </button>
+          <span class="vtrack" aria-hidden="true"><span id="vProg"></span></span>
+          <span class="vclock" id="vLen">0:00</span>
+        </div>
+        <div class="vlinks" id="vLinks" hidden>
+          <button type="button" class="textlink" id="vAgain">Record again</button>
+          <button type="button" class="textlink" id="vDelete">Delete</button>
+        </div>
+        <p class="help" id="vHelp">Only the HBS team hears it, not stylists. Leave out your address.</p>
+        <p class="verr" id="vErr" role="alert" hidden></p>
+        <p class="sr" id="vSay" aria-live="polite"></p>
+      </div>
     </section>
 
     <!-- 4 Budget -->
@@ -190,6 +222,10 @@
       <p class="lockline mt16">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
         <span>Your number and email stay private.</span>
+      </p>
+      <p class="lockline" id="rVoice" hidden>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>
+        <span id="rVoiceText"></span>
       </p>
       <div class="sums">
         <div>

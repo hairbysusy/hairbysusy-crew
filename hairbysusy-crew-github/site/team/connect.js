@@ -218,6 +218,8 @@
       onInbox: function (cb) { inboxListeners.push(cb); },
       inboxDone: function (id) { return call('write', { op: 'delete', col: 'inbox', id: id }); },
       onClients: function (cb) { clientListeners.push(cb); if (clients) queueMicrotask(function () { cb(clone(clients)); }); },
+      // A client's voice note for a job: { type, secs, data (base64) }. Only the team can fetch it.
+      voice: function (id) { return call('voice?id=' + encodeURIComponent(id)); },
       // A change to a client job: saved on the server first, then shown.
       client: async function (body) {
         var r = await call('client', body);

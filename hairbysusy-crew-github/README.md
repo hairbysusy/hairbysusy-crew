@@ -18,7 +18,7 @@ The test link for the client pages is https://hairbysusy-crew.netlify.app/book/ 
 - `netlify/lib/team/`: shared server code (Google sign-in check, Wix storage, Wix Contacts)
 - `site/book/`: the HBS client pages: home, post a job (six steps), the client's private job page, each stylist's private job page (`/book/s/`), terms and privacy summaries
 - `netlify/functions/book-api.mjs`: the client pages' server at `/api/book/*` (post, pay, the client's job, the address, the stylist's job and her answer)
-- `netlify/lib/book/`: the job rules and booking fee (`rules.mjs`), Wix storage (`store.mjs`), the Wix Payments checkout (`pay.mjs`), what happens after payment (`flow.mjs`) and the signed private links (`links.mjs`)
+- `netlify/lib/book/`: the job rules and booking fee (`rules.mjs`), Wix storage (`store.mjs`), the Wix Payments checkout (`pay.mjs`), what happens after payment (`flow.mjs`), the signed private links (`links.mjs`) and client voice notes (`voice.mjs`)
 
 ## Where data lives
 
@@ -28,6 +28,7 @@ No applicant data is stored in this repository.
 - The team app keeps its records in the Hair By Susy Wix site, in CMS collections only site admins can open: `HbsTeamCrew`, `HbsTeamJobs`, `HbsTeamInbox` (new applications), `HbsTeamSessions` (sign-ins, stored as hashes) and `HbsTeamLog` (who signed in and what changed, without the values).
 - Each application is also added to Wix Contacts (tagged "Crew" and "Crew: To review", plus "Crew: <city>").
 - Client jobs are kept in the Hair By Susy Wix site, in the admin-only CMS collection `HbsClientJobs` ("HBS: Client jobs"). Each job's private link key is stored only as a SHA-256 hash. Jobs posted from a test link are marked "Test job".
+- Client voice notes are kept in the admin-only CMS collection `HbsVoiceNotes` ("HBS: Voice notes"), split into parts of up to 240,000 characters (base64) each, titled with the job code ("TEST" for test links). The job record says which note is current; a newer note from the client replaces the older one, whose parts are removed.
 - Booking fees are paid through Wix Payments on the Hair By Susy site. Each one is an order named "HBS booking fee · Job <code> · <city>, <date>" ("TEST · " in front for test links), so refunds are made from that order in the Wix dashboard.
 
 ## Netlify environment variables
@@ -70,6 +71,8 @@ Before it can take payments, the Wix key needs two more permissions: generating 
 3. The team calls who said yes, then taps **Book**. Once enough stylists are booked the job is matched: the others who said yes see it went to another stylist, the booked stylist sees the client's first name, and the client sees the stylist's first name and adds the exact address. The stylist sees the address from the day before the job.
 4. **Text client** and **Text booked** send the right message with the right link. Until texting through Sent is switched on, these texts go from the team's own phone.
 5. Cancelling a job in the team app tells everyone on their pages. Refunds are made from the Wix order.
+
+**Voice notes.** On the job step, a client can record a voice note of up to 1 minute to explain the job. Only the HBS team hears it: it's sent right after the job is saved and before the checkout (`POST /api/book/voice`), and if it fails the client is told and the checkout opens anyway. The server takes it only with the job's own private link, within 3 hours of posting, at most 4 per job (each replaces the one before) and 30 an hour from everyone together, up to 1.2 MB, and only if its first bytes are a real recording (MP4/M4A, WebM, Ogg, AAC or MP3). In the team app the job shows **Voice note · 0:42**; it plays in a bar at the bottom of the screen and each play is logged in `HbsTeamLog`. Stylists' pages and the client's job page never include it. The page asks for the microphone only when the client taps record, which `_headers` allows for this site's own pages only (`microphone=(self)`).
 
 Private links are signed, not stored (`links.mjs`): each one is an HMAC of the job (and stylist) under a key derived from `GOOGLE_CLIENT_SECRET`, so the team app can rebuild any link and nothing in Wix can be turned into one.
 
