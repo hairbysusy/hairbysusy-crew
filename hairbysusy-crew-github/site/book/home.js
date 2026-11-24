@@ -29,11 +29,12 @@
     fit();
   } catch (e) { /* keeps the book.css height */ }
 
-  // The page starts as "Booking opens soon" (bookhbs.com until posting opens). Where clients can
-  // post (test links, or bookhbs.com once open), it shows the Post a job buttons instead.
+  // The page starts as "Online booking opens soon", with Get a stylist buttons that email
+  // info@hairbysusy.com (bookhbs.com until posting opens). Where clients can post (test links, or
+  // bookhbs.com once open), it shows the Post a job buttons instead.
   if (window.HBS.open) {
     for (const id of ['menuPost', 'heroPost', 'againOpen', 'againPost']) document.getElementById(id).hidden = false;
-    for (const id of ['heroSoon', 'againSoon']) document.getElementById(id).hidden = true;
+    for (const id of ['heroSoon', 'againSoon', 'againMail']) document.getElementById(id).hidden = true;
   }
 
   const btn = document.getElementById('menuBtn');
