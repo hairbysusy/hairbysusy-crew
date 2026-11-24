@@ -136,7 +136,7 @@ input, textarea { font: inherit; }
 .menu a { min-height: 48px; padding: 0 20px; display: flex; align-items: center; font-size: 16px; text-decoration: none; }
 .menu a + a { border-top: 1px solid var(--line); }
 
-.hero { padding: 72px 28px 88px; display: flex; flex-direction: column; position: relative; }
+.hero { padding: 44px 28px 88px; display: flex; flex-direction: column; position: relative; }
 /* A soft shade behind the words, so they read clearly over the photos */
 .hero::before {
   content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
@@ -144,13 +144,13 @@ input, textarea { font: inherit; }
 }
 .hero .lede { color: #B5B5BC; text-wrap: pretty; }
 /* The selling point, right under the headline: how fast a client can ask for a stylist */
-.fastline { margin: 26px 0 0; font-size: 23px; line-height: 1.25; font-weight: 600; font-stretch: 112%; letter-spacing: -.01em; }
+.fastline { margin: 22px 0 0; font-size: 23px; line-height: 1.25; font-weight: 600; font-stretch: 112%; letter-spacing: -.01em; }
 .hero .fastline + .lede { margin-top: 10px; }
 /* Under the hero's button: a down arrow to "How it works". The page glides there (smooth scroll on the
    home page only), and the arrow bobs gently to say there is more below. */
 html:has(body.home) { scroll-behavior: smooth; }
 .cue {
-  margin-top: 28px; align-self: flex-start; min-height: 44px; display: inline-flex; align-items: center; gap: 14px;
+  margin-top: 16px; align-self: flex-start; min-height: 44px; display: inline-flex; align-items: center; gap: 14px;
   font-size: 11px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); text-decoration: none;
 }
 .cue-ring {
@@ -167,7 +167,7 @@ html:has(body.home) { scroll-behavior: smooth; }
 }
 .hero h1 span { white-space: nowrap; }
 .lede { margin: 28px 0 0; max-width: 320px; font-size: 17px; line-height: 1.5; color: var(--muted); }
-.hero .cta { margin-top: 40px; }
+.hero .cta { margin-top: 30px; }
 .yourjob { margin: 16px 0 0; }
 /* Before client posting opens on bookhbs.com: when it opens, and the way in for stylists */
 .soon { margin-top: 40px; display: flex; flex-direction: column; gap: 24px; }
@@ -523,6 +523,10 @@ textarea.field { height: auto; min-height: 88px; padding: 10px 0; font-size: 17p
 .sums .feeline span { font-size: 16px; }
 .sums p { margin: 0; font-size: 13px; line-height: 1.4; color: var(--muted); }
 
+/* The question at the top of each step. On a phone it sits in the column with everything else; on a wide
+   screen it moves to the left, beside the choices (see "Booking steps on wide screens"). */
+.ask { display: contents; }
+
 /* Sticky action bar */
 .actions {
   position: sticky; bottom: 0; z-index: 5; padding: 14px 28px max(26px, calc(env(safe-area-inset-bottom) + 12px));
@@ -614,6 +618,41 @@ textarea.field { height: auto; min-height: 88px; padding: 10px 0; font-size: 17p
 .plain p, .plain li { font-size: 16px; line-height: 1.55; color: #C7C7CC; }
 .plain p { margin: 12px 0 0; }
 .plain ul { margin: 12px 0 0; padding-left: 20px; }
+
+/* ---------- Booking steps on wide screens ----------
+   On a laptop or desktop each of the six steps is laid out like the home page: the question large on the
+   left, held in place, with a photo of Susy's work that changes from step to step; the choices on the
+   right; the progress bar across the top; and Continue lined up under the choices. Phones keep the
+   single column. */
+@media (min-width: 900px) {
+  .bookpost { --gut: max(48px, calc((100vw - 1200px) / 2)); --cgap: clamp(56px, 6vw, 112px); }
+  .bookpost .page { max-width: none; }
+  .bookpost .bar { padding: 20px calc(var(--gut) - 10px) 18px; gap: 16px; }
+  .bookpost .stepno { font-size: 13px; }
+  .bookpost .steps { padding: 64px var(--gut) 48px; }
+  .bookpost .step { display: grid; grid-template-columns: minmax(0, .45fr) minmax(0, .55fr); column-gap: var(--cgap); align-items: start; }
+  .bookpost .ask { display: block; grid-column: 1; grid-row: 1 / span 40; position: sticky; top: 112px; }
+  .bookpost .step > :not(.ask) { grid-column: 2; }
+  .bookpost .ask + * { margin-top: 0; }
+  .bookpost .step h1 { font-size: clamp(40px, 3.4vw, 58px); }
+  .bookpost .ask .sub, .bookpost .ask .lockline { max-width: 440px; font-size: 18px; }
+  .bookpost .ask::after {
+    content: ''; display: block; margin-top: 40px; height: clamp(180px, calc(100vh - 470px), 560px); border-radius: 22px;
+    background: linear-gradient(to top, rgba(12, 12, 17, 0.35), rgba(12, 12, 17, 0) 45%), var(--shot) center 22% / cover no-repeat, #16151C;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+  }
+  .bookpost .step[data-step="1"] .ask { --shot: url("https://static.wixstatic.com/media/5fb0c1_e2783ee6a6bd4448bd19f30fc8a6b751~mv2.jpg/v1/fill/w_960,h_1200,al_c,q_75,enc_auto/hbs.jpg"); }
+  .bookpost .step[data-step="2"] .ask { --shot: url("https://static.wixstatic.com/media/5fb0c1_92fb2c9e3a1b4c93bd95ecea3bff8ae9~mv2.jpg/v1/fill/w_960,h_1200,al_t,q_75,enc_auto/hbs.jpg"); }
+  .bookpost .step[data-step="3"] .ask { --shot: url("https://static.wixstatic.com/media/c172b6_75240a1fe17c44e0a1b0951d8d570279~mv2.jpg/v1/fill/w_960,h_1200,al_t,q_75,enc_auto/hbs.jpg"); }
+  .bookpost .step[data-step="4"] .ask { --shot: url("https://static.wixstatic.com/media/5fb0c1_b922b7db3145465e9f5af132c30abc43~mv2.jpg/v1/fill/w_960,h_1200,al_t,q_75,enc_auto/hbs.jpg"); }
+  .bookpost .step[data-step="5"] .ask { --shot: url("https://static.wixstatic.com/media/5fb0c1_ceb11d9ac69b4cb68c755ae63d69ccf0~mv2.jpeg/v1/fill/w_960,h_1200,al_t,q_75,enc_auto/hbs.jpg"); }
+  .bookpost .step[data-step="6"] .ask { --shot: url("https://static.wixstatic.com/media/cd06c1_aa11a630db3f41d58ec7dd1cca4ba8e4~mv2.jpg/v1/fill/w_960,h_1200,al_c,q_75,enc_auto/hbs.jpg"); }
+  .bookpost .err { margin-left: calc((100% - var(--cgap)) * .45 + var(--cgap)); }
+  .bookpost .actions {
+    padding-top: 28px; padding-left: calc(var(--gut) + (100% - 2 * var(--gut) - var(--cgap)) * .45 + var(--cgap)); padding-right: var(--gut);
+    background: linear-gradient(to top, var(--bg) 62%, rgba(12, 12, 17, 0));
+  }
+}
 
 /* ---------- Motion across the client pages ----------
    Going from one HBS page to the next (where the browser supports it) is a smooth cross-fade: the page

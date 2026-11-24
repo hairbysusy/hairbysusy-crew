@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="/book/book.css">
 <script src="/book/motion.js"></script>
 </head>
-<body>
+<body class="bookpost">
 <div class="glow" aria-hidden="true"></div>
 <div class="grain" aria-hidden="true"></div>
 <p class="testflag" id="testflag" hidden>Test link · not public</p>
@@ -31,9 +31,11 @@
 
     <!-- 1 Where -->
     <section class="step" data-step="1" aria-labelledby="t1">
-      <p class="eyebrow">Where</p>
-      <h1 id="t1" tabindex="-1">Where do you need the stylist?</h1>
-      <p class="sub">Stylists in this city get your job.</p>
+      <div class="ask">
+        <p class="eyebrow">Where</p>
+        <h1 id="t1" tabindex="-1">Where do you need the stylist?</h1>
+        <p class="sub">Stylists in this city get your job.</p>
+      </div>
       <div class="rows" role="group" aria-label="City" id="cities"></div>
       <div class="fieldwrap">
         <label class="label" for="hood">Neighborhood</label>
@@ -44,9 +46,11 @@
 
     <!-- 2 When -->
     <section class="step" data-step="2" aria-labelledby="t2" hidden>
-      <p class="eyebrow">When</p>
-      <h1 id="t2" tabindex="-1">When do you need them?</h1>
-      <p class="sub">Choose the day, then the call time.</p>
+      <div class="ask">
+        <p class="eyebrow">When</p>
+        <h1 id="t2" tabindex="-1">When do you need them?</h1>
+        <p class="sub">Choose the day, then the call time.</p>
+      </div>
       <div class="rows mt36" role="group" aria-label="Day" id="days"></div>
       <div class="cal" id="cal" hidden>
         <div class="calhead">
@@ -70,8 +74,10 @@
 
     <!-- 3 The job -->
     <section class="step" data-step="3" aria-labelledby="t3" hidden>
-      <p class="eyebrow">The job</p>
-      <h1 id="t3" tabindex="-1">What's the job?</h1>
+      <div class="ask">
+        <p class="eyebrow">The job</p>
+        <h1 id="t3" tabindex="-1">What's the job?</h1>
+      </div>
       <p class="eyebrow grouplabel" id="kindLabel">What it's for</p>
       <div class="chips" role="group" aria-labelledby="kindLabel" id="kinds"></div>
       <p class="eyebrow grouplabel mt28" id="hairLabel">The hair</p>
@@ -98,9 +104,11 @@
 
     <!-- 4 Budget -->
     <section class="step" data-step="4" aria-labelledby="t4" hidden>
-      <p class="eyebrow">Budget</p>
-      <h1 id="t4" tabindex="-1">What's your budget?</h1>
-      <p class="sub">What each stylist is paid for this job.</p>
+      <div class="ask">
+        <p class="eyebrow">Budget</p>
+        <h1 id="t4" tabindex="-1">What's your budget?</h1>
+        <p class="sub">What each stylist is paid for this job.</p>
+      </div>
       <div class="fieldwrap mt40">
         <label class="label" for="budget">Budget, per stylist</label>
         <div class="money">
@@ -127,12 +135,14 @@
 
     <!-- 5 Your details -->
     <section class="step" data-step="5" aria-labelledby="t5" hidden>
-      <p class="eyebrow">Private</p>
-      <h1 id="t5" tabindex="-1">Your details</h1>
-      <p class="lockline">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-        <span>Your stylist sees your first name. Calls and texts go through HBS, so your number and email stay private.</span>
-      </p>
+      <div class="ask">
+        <p class="eyebrow">Private</p>
+        <h1 id="t5" tabindex="-1">Your details</h1>
+        <p class="lockline">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <span>Your stylist sees your first name. Calls and texts go through HBS, so your number and email stay private.</span>
+        </p>
+      </div>
       <div class="fields">
         <div class="fieldwrap">
           <label class="label" for="name">Full name</label>
@@ -162,8 +172,10 @@
 
     <!-- 6 Review -->
     <section class="step" data-step="6" aria-labelledby="t6" hidden>
-      <p class="eyebrow">Review</p>
-      <h1 id="t6" tabindex="-1">Check your job</h1>
+      <div class="ask">
+        <p class="eyebrow">Review</p>
+        <h1 id="t6" tabindex="-1">Check your job</h1>
+      </div>
       <section class="card" aria-labelledby="seeLabel">
         <p class="eyebrow" id="seeLabel">What stylists see</p>
         <p class="city" id="rCity"></p>
