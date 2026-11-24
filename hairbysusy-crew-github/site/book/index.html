@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/book/book.css">
+<script src="/book/motion.js"></script>
 </head>
 <body>
 <!-- Susy's work behind the hero. Photos come from the Hair By Susy site's media (static.wixstatic.com)
@@ -89,27 +90,58 @@
       </svg>
     </div>
 
+    <figure class="band reveal">
+      <picture>
+        <source media="(max-width: 600px)" srcset="https://static.wixstatic.com/media/5fb0c1_e2783ee6a6bd4448bd19f30fc8a6b751~mv2.jpg/v1/fill/w_600,h_930,al_c,q_80,enc_auto/hbs.jpg 600w, https://static.wixstatic.com/media/5fb0c1_e2783ee6a6bd4448bd19f30fc8a6b751~mv2.jpg/v1/fill/w_900,h_1395,al_c,q_80,enc_auto/hbs.jpg 900w, https://static.wixstatic.com/media/5fb0c1_e2783ee6a6bd4448bd19f30fc8a6b751~mv2.jpg/v1/fill/w_1200,h_1860,al_c,q_80,enc_auto/hbs.jpg 1200w" sizes="100vw">
+        <img src="https://static.wixstatic.com/media/5fb0c1_e2783ee6a6bd4448bd19f30fc8a6b751~mv2.jpg/v1/fill/w_1200,h_720,al_c,q_80,enc_auto/hbs.jpg" srcset="https://static.wixstatic.com/media/5fb0c1_e2783ee6a6bd4448bd19f30fc8a6b751~mv2.jpg/v1/fill/w_800,h_480,al_c,q_80,enc_auto/hbs.jpg 800w, https://static.wixstatic.com/media/5fb0c1_e2783ee6a6bd4448bd19f30fc8a6b751~mv2.jpg/v1/fill/w_1200,h_720,al_c,q_80,enc_auto/hbs.jpg 1200w, https://static.wixstatic.com/media/5fb0c1_e2783ee6a6bd4448bd19f30fc8a6b751~mv2.jpg/v1/fill/w_1600,h_960,al_c,q_80,enc_auto/hbs.jpg 1600w, https://static.wixstatic.com/media/5fb0c1_e2783ee6a6bd4448bd19f30fc8a6b751~mv2.jpg/v1/fill/w_2400,h_1440,al_c,q_80,enc_auto/hbs.jpg 2400w" sizes="100vw" alt="Long braids finished with wooden beads" loading="lazy" decoding="async">
+      </picture>
+      <figcaption class="eyebrow">Hair by Susy</figcaption>
+    </figure>
+
     <section class="how" aria-labelledby="how-title">
-      <h2 class="eyebrow" id="how-title">How it works</h2>
+      <h2 class="eyebrow reveal" id="how-title">How it works</h2>
       <ol>
-        <li><span class="n" aria-hidden="true">01</span><div><h3>Post the job</h3><p>City, neighborhood, date, call time, the work and your budget. Your exact address comes after you're matched.</p></div></li>
-        <li><span class="n" aria-hidden="true">02</span><div><h3>Stylists say yes</h3><p>We send it to stylists who take clients in your city.</p></div></li>
-        <li><span class="n" aria-hidden="true">03</span><div><h3>We check, then match</h3><p>Our team reviews their work and calls them. Then we match you.</p></div></li>
+        <li class="reveal"><span class="n" aria-hidden="true">01</span><div><h3>Post the job</h3><p>City, neighborhood, date, call time, the work and your budget. Your exact address comes after you're matched.</p></div></li>
+        <li class="reveal"><span class="n" aria-hidden="true">02</span><div><h3>Stylists say yes</h3><p>We send it to stylists who take clients in your city.</p></div></li>
+        <li class="reveal"><span class="n" aria-hidden="true">03</span><div><h3>We check, then match</h3><p>Our team reviews their work and calls them. Then we match you.</p></div></li>
       </ol>
     </section>
 
+    <section class="strip reveal" aria-label="Work by Hair by Susy">
+      <div class="strip-track">
+        <img src="/book/img/work-editorial-600.jpg" srcset="/book/img/work-editorial-600.jpg 600w, /book/img/work-editorial.jpg 1179w" sizes="(min-width: 900px) 24vw, 46vw" alt="Two sculpted braid updos, editorial for Texture on Set" loading="lazy" decoding="async">
+        <img src="https://static.wixstatic.com/media/c172b6_75240a1fe17c44e0a1b0951d8d570279~mv2.jpg/v1/fill/w_600,h_800,al_t,q_80,enc_auto/hbs.jpg" srcset="https://static.wixstatic.com/media/c172b6_75240a1fe17c44e0a1b0951d8d570279~mv2.jpg/v1/fill/w_600,h_800,al_t,q_80,enc_auto/hbs.jpg 600w, https://static.wixstatic.com/media/c172b6_75240a1fe17c44e0a1b0951d8d570279~mv2.jpg/v1/fill/w_1000,h_1333,al_t,q_80,enc_auto/hbs.jpg 1000w" sizes="(min-width: 900px) 24vw, 46vw" alt="Sculpted gold hair piece" loading="lazy" decoding="async">
+        <img src="https://static.wixstatic.com/media/cd06c1_4d94d7bb8442474a81d26da927aeada7~mv2.jpg/v1/fill/w_600,h_800,al_t,q_80,enc_auto/hbs.jpg" srcset="https://static.wixstatic.com/media/cd06c1_4d94d7bb8442474a81d26da927aeada7~mv2.jpg/v1/fill/w_600,h_800,al_t,q_80,enc_auto/hbs.jpg 600w, https://static.wixstatic.com/media/cd06c1_4d94d7bb8442474a81d26da927aeada7~mv2.jpg/v1/fill/w_1000,h_1333,al_t,q_80,enc_auto/hbs.jpg 1000w" sizes="(min-width: 900px) 24vw, 46vw" alt="Braided sculpture, black and white portrait" loading="lazy" decoding="async">
+        <img src="https://static.wixstatic.com/media/cd06c1_aa11a630db3f41d58ec7dd1cca4ba8e4~mv2.jpg/v1/fill/w_600,h_800,al_c,q_80,enc_auto/hbs.jpg" srcset="https://static.wixstatic.com/media/cd06c1_aa11a630db3f41d58ec7dd1cca4ba8e4~mv2.jpg/v1/fill/w_600,h_800,al_c,q_80,enc_auto/hbs.jpg 600w, https://static.wixstatic.com/media/cd06c1_aa11a630db3f41d58ec7dd1cca4ba8e4~mv2.jpg/v1/fill/w_1000,h_1333,al_c,q_80,enc_auto/hbs.jpg 1000w" sizes="(min-width: 900px) 24vw, 46vw" alt="Braided updo with a black off-the-shoulder dress" loading="lazy" decoding="async">
+        <img src="https://static.wixstatic.com/media/5fb0c1_aad79b3295c34e93be70640a5e42db48~mv2.jpg/v1/fill/w_600,h_800,al_c,q_80,enc_auto/hbs.jpg" srcset="https://static.wixstatic.com/media/5fb0c1_aad79b3295c34e93be70640a5e42db48~mv2.jpg/v1/fill/w_600,h_800,al_c,q_80,enc_auto/hbs.jpg 600w, https://static.wixstatic.com/media/5fb0c1_aad79b3295c34e93be70640a5e42db48~mv2.jpg/v1/fill/w_1000,h_1333,al_c,q_80,enc_auto/hbs.jpg 1000w" sizes="(min-width: 900px) 24vw, 46vw" alt="Two full afro puffs" loading="lazy" decoding="async">
+      </div>
+    </section>
+
     <section class="facts">
-      <div class="fact">
+      <div class="fact reveal">
         <h2 class="eyebrow">Booking fee</h2>
         <p>30% of your budget, paid when you post. Refunded in full if we can't match you. Non-refundable once you're matched. You pay your stylist directly.</p>
       </div>
-      <div class="fact">
+      <div class="fact reveal">
         <h2 class="eyebrow">Your details</h2>
         <p>Your stylist gets your first name, and the address the day before the job. Calls and texts go through HBS, so your number stays private.</p>
       </div>
     </section>
 
-    <section class="again">
+    <section class="joinband reveal" aria-labelledby="join-title">
+      <picture>
+        <source media="(max-width: 600px)" srcset="/img/hero.jpg">
+        <img src="/img/hero-wide.jpg" alt="Hair by Susy on set" loading="lazy" decoding="async">
+      </picture>
+      <div class="joinband-text">
+        <h2 id="join-title">Are you a stylist?</h2>
+        <a class="cta ghost split press" href="/apply/">Join our on-call team
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+    </section>
+
+    <section class="again reveal">
       <p id="againOpen" hidden>Now booking in New York. Los Angeles and Atlanta open soon.</p>
       <p id="againSoon">Opening in New York first, then Los Angeles and Atlanta.</p>
       <a class="cta split press" id="againPost" href="/book/post/" hidden>Post a job

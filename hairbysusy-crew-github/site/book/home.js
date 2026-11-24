@@ -1,6 +1,20 @@
 'use strict';
 
 (() => {
+  // Sections fade up as they come into view (book.css, "Home page photos and motion"). If anything
+  // here fails, the motion is switched off and every section simply shows.
+  try {
+    const items = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+      }
+    }, { rootMargin: '0px 0px -6% 0px', threshold: 0.12 });
+    items.forEach((el) => io.observe(el));
+  } catch (e) {
+    document.documentElement.classList.remove('js');
+  }
+
   // The page starts as "Booking opens soon" (bookhbs.com until posting opens). Where clients can
   // post (test links, or bookhbs.com once open), it shows the Post a job buttons instead.
   if (window.HBS.open) {

@@ -179,6 +179,92 @@ main { position: relative; z-index: 0; }
 .foot-home .mark { display: flex; flex-direction: column; gap: 12px; }
 .foot-home .mark svg { display: block; }
 
+/* ---------- Home page photos and motion ----------
+   Full-width photos of Susy's work between the sections. As you scroll, each section fades up, the
+   big photos ease in from a slight zoom and the row of work slides sideways. The zoom and slide use
+   scroll-driven CSS where the browser has it; elsewhere the photos simply sit still (and the row
+   can be swiped). Everything holds still for visitors who ask for less motion. */
+body { overflow-x: clip; }
+.band, .strip, .joinband { width: 100vw; margin-left: calc(50% - 50vw); }
+
+.band { position: relative; margin-top: 72px; height: min(82vh, 760px); overflow: hidden; }
+.band picture, .band img { display: block; width: 100%; height: 100%; }
+.band img { object-fit: cover; }
+.band figcaption {
+  position: absolute; left: 28px; bottom: 22px; margin: 0; color: rgba(255, 255, 255, 0.82);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.5);
+}
+.band::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(12, 12, 17, 0.55) 0%, rgba(12, 12, 17, 0) 22%, rgba(12, 12, 17, 0) 70%, rgba(12, 12, 17, 0.6) 100%);
+}
+
+.strip { margin-top: 80px; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x mandatory; }
+.strip::-webkit-scrollbar { display: none; }
+.strip-track { display: flex; gap: 12px; padding: 0 28px; width: max-content; }
+.strip-track img {
+  display: block; width: 46vw; max-width: 420px; height: auto; aspect-ratio: 3 / 4; object-fit: cover;
+  scroll-snap-align: center; background: rgba(255, 255, 255, 0.04);
+}
+@media (min-width: 900px) {
+  .strip-track { gap: 18px; }
+  .strip-track img { width: 24vw; }
+}
+
+.joinband { position: relative; margin-top: 88px; height: min(88vh, 820px); overflow: hidden; display: flex; align-items: flex-end; }
+.joinband picture { position: absolute; inset: 0; }
+.joinband img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.joinband::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(12, 12, 17, 0.5) 0%, rgba(12, 12, 17, 0.05) 30%, rgba(12, 12, 17, 0.35) 60%, rgba(12, 12, 17, 0.92) 100%);
+}
+.joinband-text {
+  position: relative; z-index: 1; width: 100%; max-width: 480px; margin: 0 auto; padding: 0 28px 48px;
+  display: flex; flex-direction: column; gap: 24px;
+}
+.joinband h2 {
+  margin: 0; font-size: clamp(36px, 11vw, 52px); line-height: .96; font-weight: 800; font-stretch: 125%;
+  letter-spacing: -.02em; text-transform: uppercase;
+}
+
+/* Sections fade up as they come into view (home.js adds .in). Without the script, nothing is hidden. */
+.js .reveal { opacity: 0; transform: translateY(28px); transition: opacity .9s cubic-bezier(.2, .7, .2, 1), transform .9s cubic-bezier(.2, .7, .2, 1); }
+.js .reveal.in { opacity: 1; transform: none; }
+.js .how li.reveal:nth-child(2) { transition-delay: .08s; }
+.js .how li.reveal:nth-child(3) { transition-delay: .16s; }
+.js .fact.reveal + .fact.reveal { transition-delay: .1s; }
+
+/* The hero arrives: the collage fades in and the headline rises line by line */
+.js .mosaic { animation: mosaicin 1.8s ease both; }
+@keyframes mosaicin { from { opacity: 0; } to { opacity: .3; } }
+.js .hero > * { animation: rise 1s cubic-bezier(.2, .7, .2, 1) both; }
+.js .hero h1 { animation: none; }
+.js .hero h1 span { animation: rise 1s cubic-bezier(.2, .7, .2, 1) both; }
+.js .hero h1 span:nth-child(1) { animation-delay: .1s; }
+.js .hero h1 span:nth-child(2) { animation-delay: .2s; }
+.js .hero h1 span:nth-child(3) { animation-delay: .3s; }
+.js .hero .lede { animation-delay: .45s; }
+.js .hero .soon, .js .hero .cta, .js .hero .yourjob { animation-delay: .6s; }
+@keyframes rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+
+@supports (animation-timeline: view()) {
+  .band img { animation: bandzoom linear both; animation-timeline: view(); animation-range: entry 0% cover 55%; }
+  @keyframes bandzoom { from { transform: scale(1.16); } to { transform: scale(1); } }
+  .joinband img { animation: bandzoom linear both; animation-timeline: view(); animation-range: entry 0% cover 60%; }
+  .strip { overflow: hidden; scroll-snap-type: none; }
+  .strip-track { animation: stripslide linear both; animation-timeline: view(); animation-range: entry 0% exit 100%; }
+  @keyframes stripslide { from { transform: translateX(0); } to { transform: translateX(calc(100vw - 100%)); } }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js .reveal { opacity: 1; transform: none; transition: none; }
+  .js .mosaic { animation: none; }
+  .js .hero > *, .js .hero h1 span { animation: none; }
+  .band img, .joinband img { animation: none; transform: none; }
+  .strip { overflow-x: auto; scroll-snap-type: x mandatory; }
+  .strip-track { animation: none; transform: none; }
+}
+
 /* ---------- Posting steps ---------- */
 .bar {
   position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 8px;
