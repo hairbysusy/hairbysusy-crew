@@ -15,6 +15,20 @@
     document.documentElement.classList.remove('js');
   }
 
+  // The photo wall behind the hero (book.css, .mosaic) runs to just past the hero's bottom edge, so
+  // the photos sit behind the hero's button on every screen and fade out at the edge. It follows the
+  // hero as fonts load and the window changes size. If this fails, the wall keeps its book.css height.
+  try {
+    const wall = document.querySelector('.mosaic');
+    const hero = document.querySelector('.hero');
+    const fit = () => {
+      const bottom = Math.ceil(hero.getBoundingClientRect().bottom + window.scrollY);
+      if (bottom > 0) wall.style.height = (bottom + 16) + 'px';
+    };
+    new ResizeObserver(fit).observe(hero);
+    fit();
+  } catch (e) { /* keeps the book.css height */ }
+
   // The page starts as "Booking opens soon" (bookhbs.com until posting opens). Where clients can
   // post (test links, or bookhbs.com once open), it shows the Post a job buttons instead.
   if (window.HBS.open) {
