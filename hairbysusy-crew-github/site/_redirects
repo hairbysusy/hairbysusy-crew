@@ -23,11 +23,6 @@ https://bookhbs.com/team             https://team.hairbysusy.com/team/         3
 https://bookhbs.com/team/*           https://team.hairbysusy.com/team/:splat   301!
 https://bookhbs.com/city             https://crew.hairbysusy.com/city/         302!
 https://bookhbs.com/city/*           https://crew.hairbysusy.com/city/:splat   302!
-# Client posting opens on Susy's word (LIVE_OPEN in netlify/lib/book/rules.mjs and
-# site/book/common.js). Until then the posting page sends visitors to the home page.
-# Remove these two lines when posting opens.
-https://bookhbs.com/book/post        https://bookhbs.com/                      302!
-https://bookhbs.com/book/post/*      https://bookhbs.com/                      302!
 
 # The HBS client pages (/book/) are for bookhbs.com and the test links only (this site's own
 # address, hairbysusy-crew.netlify.app/book/, and deploy previews). On crew.hairbysusy.com and the

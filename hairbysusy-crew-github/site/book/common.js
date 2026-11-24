@@ -10,7 +10,7 @@
 
   // Client posting on bookhbs.com opens on Susy's word; test links can always post.
   // Keep in step with LIVE_OPEN in netlify/lib/book/rules.mjs, which the server enforces.
-  const LIVE_OPEN = false;
+  const LIVE_OPEN = true;
   const open = test || LIVE_OPEN;
 
   const ID_RE = /^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{10}$/;
